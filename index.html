@@ -4283,13 +4283,14 @@ function generateMealIdeas(){
       '</div>';
   }
 
-  out.innerHTML =
-    '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:10px">TODAY\'S MEAL PLAN</div>'+
-    mealCard('\uD83C\uDF05','Breakfast', b)+
-    mealCard('\uD83E\uDD57','Lunch', l)+
-    mealCard('\uD83C\uDF7D\uFE0F','Dinner', d)+
-    mealCard('\uD83C\uDF4E','Snack', s)+
-    '<div style="font-size:11px;color:#6a6a75;text-align:center;margin-top:8px">Tap Generate again for a new plan</div>';
+  var html = '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:10px">TODAY';
+  html += "'S MEAL PLAN</div>";
+  html += mealCard('\uD83C\uDF05','Breakfast', b);
+  html += mealCard('\uD83E\uDD57','Lunch', l);
+  html += mealCard('\uD83C\uDF7D\uFE0F','Dinner', d);
+  html += mealCard('\uD83C\uDF4E','Snack', s);
+  html += '<div style="font-size:11px;color:#6a6a75;text-align:center;margin-top:8px">Tap Generate again for a new plan</div>';
+  out.innerHTML = html;
 }
 window.generateMealIdeas = generateMealIdeas;
 
