@@ -4135,7 +4135,15 @@ function loadAllergens(){
 /* ============ MEAL IDEA GENERATOR ============ */
 function generateMealIdeas(){
   var out = document.getElementById('meal-ideas-output');
-  if(!out) return;
+  if(!out){
+    // fallback: create output div next to button
+    var btn = document.querySelector('[onclick="generateMealIdeas()"]');
+    if(!btn) return;
+    out = document.createElement('div');
+    out.id = 'meal-ideas-output';
+    out.style.marginTop = '12px';
+    btn.parentNode.appendChild(out);
+  }
   var saved = loadNutrition();
   var goal = saved.goal || _mealGoal || 'maintain';
 
