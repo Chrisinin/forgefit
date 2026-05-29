@@ -921,19 +921,49 @@
       <!-- Weight + Goal Calculator -->
       <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
         <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:#9a9aa3;text-transform:uppercase;margin-bottom:12px">YOUR STATS</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
             <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">WEIGHT (lbs)</div>
             <input type="number" id="user-weight-input" min="50" max="500" placeholder="e.g. 185" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
           </div>
           <div>
-            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">GOAL</div>
-            <select id="user-goal-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
-              <option value="lose">Lose Fat</option>
-              <option value="maintain">Maintain</option>
-              <option value="build">Build Muscle</option>
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">HEIGHT</div>
+            <div style="display:flex;gap:6px">
+              <input type="number" id="user-height-ft" min="3" max="8" placeholder="ft" style="width:50%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 8px;color:#f5f5f7;font-size:14px;font-weight:700;box-sizing:border-box" />
+              <input type="number" id="user-height-in" min="0" max="11" placeholder="in" style="width:50%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 8px;color:#f5f5f7;font-size:14px;font-weight:700;box-sizing:border-box" />
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">AGE</div>
+            <input type="number" id="user-age-input" min="13" max="100" placeholder="e.g. 28" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
+          </div>
+          <div>
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">SEX</div>
+            <select id="user-sex-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </select>
           </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">ACTIVITY LEVEL</div>
+          <select id="user-activity-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
+            <option value="1.2">Sedentary (desk job, little/no exercise)</option>
+            <option value="1.375">Lightly Active (1-3 days/week)</option>
+            <option value="1.55" selected>Moderately Active (3-5 days/week)</option>
+            <option value="1.725">Very Active (6-7 days/week)</option>
+            <option value="1.9">Extra Active (athlete / physical job)</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">GOAL</div>
+          <select id="user-goal-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
+            <option value="lose">Lose Fat</option>
+            <option value="maintain">Maintain</option>
+            <option value="build">Build Muscle</option>
+          </select>
         </div>
         <button onclick="calcNutritionFromWeight()" style="width:100%;background:#ff4500;border:none;border-radius:10px;padding:12px;color:#fff;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">CALCULATE MY MACROS</button>
         <div id="nutrition-calc-note" style="font-size:11px;color:#9a9aa3;text-align:center;margin-top:8px"></div>
@@ -3866,49 +3896,61 @@ var MEAL_MACROS = {
   Snack:     ['~25g P · ~10g C · ~8g F', '~20g P · ~30g C · ~6g F', '~5g P · ~25g C · ~8g F']
 };
 
-/* ============ WEIGHT-BASED MACRO CALCULATOR ============ */
+/* ============ MIFFLIN-ST JEOR MACRO CALCULATOR ============ */
 function calcNutritionFromWeight(){
-  var weightEl = document.getElementById('user-weight-input');
-  var goalEl = document.getElementById('user-goal-input');
   var noteEl = document.getElementById('nutrition-calc-note');
-  var weight = parseFloat(weightEl.value);
-  if(!weight || weight < 50 || weight > 500){
-    noteEl.style.color = '#ff4500';
-    noteEl.textContent = 'Please enter a valid weight between 50 and 500 lbs.';
-    return;
-  }
-  var goal = goalEl.value;
-  var leanMass = weight * 0.85; // estimate ~85% lean
-  var protein, carbs, fats, cals;
-  if(goal === 'lose'){
-    // Cut: 10-12 cal/lb, high protein, lower carbs
-    cals = Math.round(weight * 11);
-    protein = Math.round(weight * 1.0);
-    fats = Math.round(weight * 0.3);
-    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
-    noteEl.style.color = '#9a9aa3';
-    noteEl.textContent = 'Fat loss plan: moderate deficit, high protein to preserve muscle.';
-  } else if(goal === 'build'){
-    // Bulk: 16-18 cal/lb, high protein, high carbs
-    cals = Math.round(weight * 17);
-    protein = Math.round(weight * 1.0);
-    fats = Math.round(weight * 0.4);
-    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
-    noteEl.style.color = '#9a9aa3';
-    noteEl.textContent = 'Muscle building plan: calorie surplus with high carbs for fuel.';
+  var weight = parseFloat(document.getElementById('user-weight-input').value);
+  var ft = parseFloat(document.getElementById('user-height-ft').value) || 0;
+  var inches = parseFloat(document.getElementById('user-height-in').value) || 0;
+  var age = parseFloat(document.getElementById('user-age-input').value);
+  var sex = document.getElementById('user-sex-input').value;
+  var activity = parseFloat(document.getElementById('user-activity-input').value);
+  var goal = document.getElementById('user-goal-input').value;
+  // Validate
+  if(!weight || weight < 50 || weight > 500){ noteEl.style.color='#ff4500'; noteEl.textContent='Please enter a valid weight (50-500 lbs).'; return; }
+  if((!ft && !inches) || (ft === 0 && inches === 0)){ noteEl.style.color='#ff4500'; noteEl.textContent='Please enter your height.'; return; }
+  if(!age || age < 13 || age > 100){ noteEl.style.color='#ff4500'; noteEl.textContent='Please enter a valid age (13-100).'; return; }
+  // Convert to metric for Mifflin-St Jeor
+  var weightKg = weight * 0.453592;
+  var heightCm = ((ft * 12) + inches) * 2.54;
+  // BMR — Mifflin-St Jeor
+  var bmr;
+  if(sex === 'male'){
+    bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
   } else {
-    // Maintain: 14-15 cal/lb
-    cals = Math.round(weight * 14);
-    protein = Math.round(weight * 0.85);
-    fats = Math.round(weight * 0.35);
+    bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
+  }
+  // TDEE
+  var tdee = bmr * activity;
+  // Adjust for goal
+  var cals, protein, fats, carbs, noteText;
+  if(goal === 'lose'){
+    cals = Math.round(tdee - 400);
+    // High protein to preserve muscle: 1g per lb bodyweight
+    protein = Math.round(weight * 1.0);
+    // Fats: 25% of calories
+    fats = Math.round((cals * 0.25) / 9);
     carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
-    noteEl.style.color = '#9a9aa3';
-    noteEl.textContent = 'Maintenance plan: balanced macros to sustain current physique.';
+    noteText = 'Fat loss: ~400 cal deficit from your TDEE of ' + Math.round(tdee) + ' cal. High protein preserves muscle.';
+  } else if(goal === 'build'){
+    cals = Math.round(tdee + 250);
+    // Protein: 1g per lb, carbs high for fuel
+    protein = Math.round(weight * 1.0);
+    fats = Math.round((cals * 0.25) / 9);
+    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
+    noteText = 'Muscle build: lean +250 cal surplus over your TDEE of ' + Math.round(tdee) + ' cal.';
+  } else {
+    cals = Math.round(tdee);
+    protein = Math.round(weight * 0.85);
+    fats = Math.round((cals * 0.28) / 9);
+    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
+    noteText = 'Maintenance: matched to your TDEE of ' + Math.round(tdee) + ' cal. Balanced macros.';
   }
   if(carbs < 0) carbs = 0;
+  noteEl.style.color = '#9a9aa3';
+  noteEl.textContent = noteText;
   var n = { protein: protein, carbs: carbs, fats: fats, weight: weight, goal: goal };
   saveNutrition(n);
-  // Update inputs and display
   document.getElementById('macro-protein-input').value = protein;
   document.getElementById('macro-carbs-input').value = carbs;
   document.getElementById('macro-fats-input').value = fats;
