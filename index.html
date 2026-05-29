@@ -3283,10 +3283,18 @@ function renderSessionExercise() {
     html += '<div style="font-size:13px;color:#9a9aa3;line-height:1.5;margin-top:4px">' + escapeHTML(ex.tip) + '</div>';
   }
   html += '</div>';
+  var smartRest = getRestSeconds(ex.name);
+  var restLabel = smartRest >= 90 ? '1:30 — HEAVY COMPOUND' : smartRest === 45 ? '0:45 — CORE' : smartRest === 30 ? '0:30 — CARDIO' : '1:00 — ISOLATION';
   html += '<div class="ws-rest-card" id="ws-rest-card" style="display:none">';
-  html += '<div class="ws-rest-label">REST</div>';
-  html += '<div class="ws-rest-time" id="ws-rest-time">01:00</div>';
-  html += '<button class="ws-skip-btn" id="ws-skip-rest">SKIP REST</button>';
+  html += '<div class="ws-rest-label">REST PERIOD</div>';
+  html += '<div style="font-size:11px;color:#9a9aa3;font-weight:700;letter-spacing:0.08em;margin-bottom:8px">' + restLabel + '</div>';
+  html += '<div class="ws-rest-time" id="ws-rest-time">--</div>';
+  html += '<div id="ws-rest-next" style="font-size:11px;color:#ff7a3d;font-weight:800;letter-spacing:0.06em;margin-bottom:14px;text-align:center"></div>';
+  html += '<div style="display:flex;gap:10px;justify-content:center">';
+  html += '<button class="ws-skip-btn" id="ws-rest-minus">-15s</button>';
+  html += '<button class="ws-skip-btn" id="ws-skip-rest">SKIP</button>';
+  html += '<button class="ws-skip-btn" id="ws-rest-plus">+15s</button>';
+  html += '</div>';
   html += '</div>';
   html += '<button class="ws-next-btn" id="ws-next-ex">' + (wsCurrentIdx < wsExercises.length - 1 ? 'NEXT EXERCISE' : 'FINISH WORKOUT') + '</button>';
   body.innerHTML = html;
@@ -3312,13 +3320,40 @@ function renderSessionExercise() {
     clearRestTimer();
     document.getElementById('ws-rest-card').style.display = 'none';
   });
+  document.getElementById('ws-rest-minus') && document.getElementById('ws-rest-minus').addEventListener('click', function() {
+    wsRestRemaining = Math.max(5, wsRestRemaining - 15);
+    updateRestDisplay();
+  });
+  document.getElementById('ws-rest-plus') && document.getElementById('ws-rest-plus').addEventListener('click', function() {
+    wsRestRemaining = wsRestRemaining + 15;
+    updateRestDisplay();
+  });
+}
+
+function getRestSeconds(exerciseName){
+  var n = (exerciseName || '').toLowerCase();
+  // Cardio / circuits = 30s
+  if(/cardio|jog|run|sprint|jump|burpee|mountain climber|walk|bike|row|elliptical|hiit/.test(n)) return 30;
+  // Core = 45s
+  if(/crunch|plank|sit.up|ab |abs|core|leg raise|flutter|bicycle|dead bug|bird dog|kegel|heel slide|toe tap|supine|clamshell|pelvic/.test(n)) return 45;
+  // Isolation / single joint = 60s
+  if(/curl|fly|raise|extension|kickback|pullover|shrug|face pull|push.down|press.down/.test(n)) return 60;
+  // Heavy compound = 90s
+  if(/squat|deadlift|bench press|row|pull.up|chin.up|dip|overhead press|hip thrust|lunge|step.up|rdl/.test(n)) return 90;
+  // Default 60s
+  return 60;
 }
 
 function startRestTimer() {
   clearRestTimer();
-  wsRestRemaining = 60;
+  var ex = wsExercises[wsCurrentIdx];
+  wsRestRemaining = getRestSeconds(ex ? ex.name : '');
   var restCard = document.getElementById('ws-rest-card');
   if (!restCard) return;
+  // Show next exercise name during rest
+  var nextEx = wsExercises[wsCurrentIdx + 1];
+  var nextLabel = document.getElementById('ws-rest-next');
+  if(nextLabel) nextLabel.textContent = nextEx ? 'UP NEXT: ' + nextEx.name.toUpperCase() : 'LAST EXERCISE — FINISH STRONG';
   restCard.style.display = 'block';
   updateRestDisplay();
   wsRestInterval = setInterval(function() {
@@ -3328,6 +3363,15 @@ function startRestTimer() {
       var rc = document.getElementById('ws-rest-card');
       if (rc) rc.style.display = 'none';
       if (navigator.vibrate) { try { navigator.vibrate([200, 100, 200]); } catch(e){} }
+      // Play audio beep if available
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+      } catch(e){}
       return;
     }
     updateRestDisplay();
