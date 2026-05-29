@@ -4138,17 +4138,13 @@ function generateMealIdeas(){
   var fats = parseInt(document.getElementById('macro-fats-input').value,10) || _mealFats || saved.fats || 60;
   // Ensure food guide panel is visible
   var panel = document.getElementById('food-guide-panel');
-  if(panel && panel.style.display === 'none'){
+  if(!panel) return;
+  if(panel.style.display === 'none' || !document.getElementById('meal-ideas-output')){
     renderFoodGuide(goal, protein, carbs, fats, protein*4+carbs*4+fats*9);
-    return; // renderFoodGuide already calls generateMealIdeas? No — just re-call after small delay
-  }
-  var out = document.getElementById('meal-ideas-output');
-  if(!out){
-    // Panel wasn't rendered yet — render it first then generate
-    if(panel){ renderFoodGuide(goal, protein, carbs, fats, protein*4+carbs*4+fats*9); }
-    setTimeout(generateMealIdeas, 50);
+    setTimeout(generateMealIdeas, 80);
     return;
   }
+  var out = document.getElementById('meal-ideas-output');
 
   var MEALS = {
     lose: {
