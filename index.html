@@ -3971,7 +3971,7 @@ function calcNutritionFromWeight(){
   if(carbs < 0) carbs = 0;
   noteEl.style.color = '#9a9aa3';
   noteEl.textContent = noteText;
-  var n = { protein: protein, carbs: carbs, fats: fats, weight: weight, goal: goal };
+  var n = { protein: protein, carbs: carbs, fats: fats, weight: weight, goal: goal, heightFt: ft, heightIn: inches, age: age, sex: sex, activity: activity };
   saveNutrition(n);
   document.getElementById('macro-protein-input').value = protein;
   document.getElementById('macro-carbs-input').value = carbs;
@@ -4505,6 +4505,11 @@ renderPhotoScheduleStatus();
 (function(){
   var n = loadNutrition();
   if(n.weight){ document.getElementById('user-weight-input').value = n.weight; }
+  if(n.heightFt){ document.getElementById('user-height-ft').value = n.heightFt; }
+  if(n.heightIn !== undefined){ document.getElementById('user-height-in').value = n.heightIn; }
+  if(n.age){ document.getElementById('user-age-input').value = n.age; }
+  if(n.sex){ document.getElementById('user-sex-input').value = n.sex; }
+  if(n.activity){ document.getElementById('user-activity-input').value = n.activity; }
   if(n.goal){ document.getElementById('user-goal-input').value = n.goal; }
 })();
 
