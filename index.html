@@ -1,0 +1,2908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>ForgeFit</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:#0b0b0d;color:#f5f5f7;font-family:'Satoshi',system-ui,-apple-system,sans-serif;font-weight:500;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:url('bg_gym_night.png') center/cover no-repeat;opacity:0.18;z-index:0;pointer-events:none}
+  #auth-screen,#app-shell{position:relative;z-index:1}
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;font-weight:500}
+  input{font-family:inherit;color:inherit}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:0;height:0}
+
+  /* ---------- AUTH ---------- */
+  #auth-screen{
+    min-height:100vh;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    padding:32px 24px;
+    background:
+      radial-gradient(800px 500px at 20% 0%, rgba(255,69,0,0.18), transparent 60%),
+      radial-gradient(700px 600px at 100% 100%, rgba(255,69,0,0.12), transparent 60%),
+      transparent;
+  }
+  .auth-card{width:100%;max-width:380px}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+  .brand-mark{
+    width:48px;height:48px;border-radius:14px;
+    background:linear-gradient(135deg,#ff4500,#ff7a3d);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(255,69,0,0.4);
+  }
+  .brand-mark svg{width:26px;height:26px;color:#0b0b0d}
+  .brand-name{font-size:28px;font-weight:900;letter-spacing:-0.02em}
+  .auth-title{font-size:24px;font-weight:900;margin-bottom:6px;letter-spacing:-0.01em}
+  .auth-sub{font-size:14px;color:#9a9aa3;margin-bottom:24px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:#9a9aa3;margin-bottom:6px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase}
+  .field input{
+    width:100%;padding:14px 16px;
+    background:#141418;border:1px solid #25252c;border-radius:12px;
+    font-size:15px;font-weight:500;outline:none;
+    transition:border-color .15s;
+  }
+  .field input:focus{border-color:#ff4500}
+  .remember{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:8px 0 20px;font-size:14px;color:#cfcfd4;
+  }
+  .pill-switch{
+    position:relative;width:44px;height:24px;background:#25252c;border-radius:999px;
+    cursor:pointer;transition:background .2s;flex-shrink:0;
+  }
+  .pill-switch::after{
+    content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+    background:#f5f5f7;transition:transform .2s;
+  }
+  .pill-switch.on{background:#ff4500}
+  .pill-switch.on::after{transform:translateX(20px)}
+  .btn-primary{
+    width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:15px;
+    background:linear-gradient(135deg,#ff4500,#ff6a2a);color:#fff;
+    box-shadow:0 8px 24px rgba(255,69,0,0.35);
+    transition:transform .1s;
+  }
+  .btn-primary:active{transform:scale(0.98)}
+  .auth-hint{margin-top:18px;font-size:12px;color:#7a7a82;text-align:center}
+  .auth-error{margin-top:10px;font-size:13px;color:#ff6a4a;text-align:center;min-height:18px}
+
+  /* ---------- APP SHELL ---------- */
+  #app{min-height:100vh;padding-bottom:88px}
+  .topbar{
+    position:sticky;top:0;z-index:10;
+    padding:18px 20px 12px;background:rgba(11,11,13,0.85);backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .topbar h1{font-size:13px;color:#9a9aa3;font-weight:700;letter-spacing:0.12em;text-transform:uppercase}
+  .topbar h2{font-size:30px;font-weight:900;letter-spacing:-0.02em;margin-top:4px;text-transform:uppercase}
+  .container{padding:20px}
+
+  /* ---------- TODAY ---------- */
+  .featured{
+    position:relative;overflow:hidden;
+    border-radius:20px;padding:24px;margin-bottom:18px;
+    background:linear-gradient(135deg,#ff4500 0%,#ff7a3d 60%,#ffb37a 130%);
+    color:#0b0b0d;
+    box-shadow:0 18px 40px rgba(255,69,0,0.35);
+  }
+  .featured .label{font-size:11px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;opacity:0.75}
+  .featured .name{font-size:32px;font-weight:900;margin:8px 0 6px;letter-spacing:-0.02em;text-transform:uppercase;line-height:1.05}
+  .featured .meta{font-size:14px;font-weight:700;opacity:0.85;letter-spacing:0.02em}
+  .featured .cta{
+    margin-top:18px;display:inline-flex;align-items:center;gap:8px;
+    padding:10px 16px;border-radius:10px;background:#0b0b0d;color:#ff4500;
+    font-weight:900;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;
+  }
+  .featured::before{
+    content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+    border-radius:50%;background:rgba(255,255,255,0.18);
+  }
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stat-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:14px 12px;text-align:center;
+  }
+  .stat-card .v{font-size:2rem;font-weight:900;color:#ff4500;letter-spacing:-0.03em;line-height:1}
+  .stat-card .l{font-size:11px;color:#9a9aa3;font-weight:700;margin-top:4px;letter-spacing:0.08em;text-transform:uppercase}
+  .section-title{font-size:13px;font-weight:900;color:#9a9aa3;letter-spacing:2px;text-transform:uppercase;margin:18px 0 10px}
+  .quick-list{display:flex;flex-direction:column;gap:10px}
+  .quick-item{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:14px 16px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .quick-icon{
+    width:40px;height:40px;border-radius:10px;background:rgba(255,69,0,0.15);color:#ff4500;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .quick-item .t{font-weight:700;font-size:14px}
+  .quick-item .s{font-size:12px;color:#9a9aa3;margin-top:2px}
+
+  /* ---------- FILTER PILLS ---------- */
+  .filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;flex-wrap:nowrap}
+  .pill{
+    padding:8px 14px;border-radius:999px;background:#141418;border:1px solid #1f1f25;
+    font-size:13px;font-weight:600;color:#cfcfd4;white-space:nowrap;cursor:pointer;
+    transition:all .15s;
+  }
+  .pill.active{background:#ff4500;border-color:#ff4500;color:#0b0b0d}
+
+  /* ---------- GENDER TOGGLE (AUTH) ---------- */
+  .gender-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+  .gender-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 12px;border-radius:999px;
+    background:#141418;border:1px solid #25252c;
+    font-size:14px;font-weight:900;color:#cfcfd4;letter-spacing:0.08em;
+    cursor:pointer;transition:all .15s;
+  }
+  .gender-btn .sym{font-size:18px;line-height:1}
+  .gender-btn.active{
+    background:linear-gradient(135deg,rgba(255,69,0,0.18),rgba(255,122,61,0.10));
+    border-color:#ff4500;color:#ff7a3d;
+    box-shadow:0 0 0 1px rgba(255,69,0,0.35), 0 8px 20px rgba(255,69,0,0.25);
+  }
+
+  /* ---------- RECOMMENDATIONS ---------- */
+  .reco-list{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+  .reco-item{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:12px 14px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .reco-emoji{
+    width:42px;height:42px;border-radius:12px;
+    background:rgba(255,69,0,0.12);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0;
+  }
+  .reco-body{flex:1;min-width:0}
+  .reco-name{font-weight:900;font-size:14px;letter-spacing:-0.01em;text-transform:uppercase;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .reco-goal{font-size:11px;color:#ff7a3d;font-weight:700;margin-top:2px;letter-spacing:0.06em;text-transform:uppercase}
+  .reco-view{
+    flex-shrink:0;padding:8px 14px;border-radius:10px;
+    background:#ff4500;color:#0b0b0d;
+    font-weight:900;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
+    cursor:pointer;border:none;
+  }
+  .reco-view:active{transform:scale(0.97)}
+
+  /* ---------- PROGRAM CARDS ---------- */
+  .program-list{display:flex;flex-direction:column;gap:12px}
+  .prog-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:16px;padding:16px;
+    cursor:pointer;transition:border-color .15s, transform .1s;
+  }
+  .prog-card:active{transform:scale(0.99)}
+  .prog-card:hover{border-color:#2a2a32}
+  .prog-card .pname{font-size:20px;font-weight:900;letter-spacing:-0.01em;text-transform:uppercase}
+  .prog-tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .tag{
+    padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;
+    background:rgba(255,69,0,0.12);color:#ff7a3d;letter-spacing:0.02em;
+  }
+  .tag.gray{background:#1f1f25;color:#cfcfd4}
+  .prog-card .desc{font-size:13px;color:#9a9aa3;line-height:1.45}
+
+  /* ---------- PROGRAM DETAIL OVERLAY ---------- */
+  .overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;background:#0b0b0d;
+    overflow-y:auto;
+  }
+  #program-detail{z-index:50;display:none}
+  #day-detail{z-index:60;display:none}
+  .overlay-top{
+    position:sticky;top:0;z-index:5;background:rgba(11,11,13,0.92);backdrop-filter:blur(12px);
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .icon-btn{
+    width:38px;height:38px;border-radius:10px;background:#141418;border:1px solid #1f1f25;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .icon-btn svg{width:18px;height:18px}
+  .overlay-top .ttl{font-weight:700;font-size:15px;flex:1;letter-spacing:-0.01em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .overlay-body{padding:20px}
+  .pd-hero h1{font-size:32px;font-weight:900;letter-spacing:-0.02em;margin-bottom:10px;line-height:1.1;text-transform:uppercase}
+  .pd-section{margin-top:22px}
+  .pd-section h3{font-size:13px;font-weight:900;color:#9a9aa3;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+  .pd-about{font-size:14px;color:#cfcfd4;line-height:1.55}
+  .day-row{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:14px;
+    display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s;
+  }
+  .day-row + .day-row{margin-top:8px}
+  .day-row:hover{border-color:#2a2a32}
+  .day-abbr{
+    width:42px;height:42px;border-radius:10px;background:rgba(255,69,0,0.12);
+    color:#ff4500;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:13px;flex-shrink:0;letter-spacing:0.02em;
+  }
+  .day-info{flex:1;min-width:0}
+  .day-info .n{font-weight:700;font-size:14px;letter-spacing:-0.01em}
+  .day-info .t{font-size:12px;color:#9a9aa3;margin-top:2px}
+  .arrow{color:#7a7a82;flex-shrink:0}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    padding:7px 12px;border-radius:10px;background:#141418;border:1px solid #1f1f25;
+    font-size:12px;font-weight:600;color:#cfcfd4;
+  }
+  .start-btn-fixed{
+    position:sticky;bottom:16px;width:100%;margin-top:24px;
+  }
+
+  /* ---------- DAY DETAIL ---------- */
+  .ex-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;
+    display:flex;gap:14px;
+  }
+  .ex-card + .ex-card{margin-top:10px}
+  .ex-num{
+    width:32px;height:32px;border-radius:10px;background:rgba(255,69,0,0.12);
+    color:#ff4500;font-weight:900;font-size:14px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .ex-body{flex:1;min-width:0}
+  .ex-name{font-weight:900;font-size:15px;letter-spacing:-0.01em}
+  .ex-sets{font-size:13px;color:#ff7a3d;font-weight:700;margin-top:3px}
+  .ex-tip{font-size:13px;color:#9a9aa3;margin-top:6px;line-height:1.5}
+
+  /* ---------- PROGRESS ---------- */
+  .big-stat{
+    background:#141418;border:1px solid #1f1f25;border-radius:18px;padding:22px;
+    text-align:center;margin-bottom:12px;
+  }
+  .big-stat .v{font-size:48px;font-weight:900;color:#ff4500;letter-spacing:-0.03em;line-height:1}
+  .big-stat .l{font-size:12px;color:#9a9aa3;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-top:6px}
+  .progress-bar{
+    height:10px;background:#1f1f25;border-radius:999px;overflow:hidden;margin-top:14px;
+  }
+  .progress-fill{
+    height:100%;background:linear-gradient(90deg,#ff4500,#ff7a3d);border-radius:999px;
+    transition:width .4s ease;
+  }
+  .cal-card{background:#141418;border:1px solid #1f1f25;border-radius:18px;padding:18px;margin-top:8px}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .cal-head .m{font-weight:900;font-size:16px;letter-spacing:-0.01em}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-day-label{font-size:10px;color:#7a7a82;text-align:center;font-weight:700;padding:4px 0;letter-spacing:0.05em}
+  .cal-day{
+    aspect-ratio:1/1;border-radius:8px;background:#1a1a20;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:600;color:#cfcfd4;cursor:pointer;
+    transition:background .15s, transform .1s;
+  }
+  .cal-day:active{transform:scale(0.95)}
+  .cal-day.empty{background:transparent;cursor:default}
+  .cal-day.done{background:#ff4500;color:#0b0b0d;font-weight:900}
+  .cal-day.today{box-shadow:inset 0 0 0 2px #ff4500}
+
+  /* ---------- MORE / TIMER / PROFILE ---------- */
+  .timer-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:18px;padding:22px;
+    text-align:center;
+  }
+  .timer-display{
+    font-family:'Satoshi',sans-serif;font-variant-numeric:tabular-nums;
+    font-size:64px;font-weight:900;color:#ff4500;letter-spacing:-0.04em;line-height:1;
+    margin:8px 0 14px;
+  }
+  .timer-rows{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+  .timer-adj{background:#0b0b0d;border:1px solid #1f1f25;border-radius:12px;padding:10px}
+  .timer-adj .lab{font-size:11px;color:#9a9aa3;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+  .timer-adj .row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .step-btn{
+    width:36px;height:36px;border-radius:9px;background:#1f1f25;
+    font-size:18px;font-weight:900;color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .step-btn:active{background:#ff4500;color:#0b0b0d}
+  .step-val{font-size:20px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums}
+  .timer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .btn-secondary{
+    width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:14px;
+    background:#1f1f25;color:#f5f5f7;
+  }
+  .btn-secondary:active{background:#2a2a32}
+  .profile-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:18px;padding:20px;margin-top:14px;
+  }
+  .profile-row{display:flex;align-items:center;gap:14px}
+  .avatar{
+    width:54px;height:54px;border-radius:50%;
+    background:linear-gradient(135deg,#ff4500,#ff7a3d);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;color:#0b0b0d;font-size:20px;
+  }
+  .profile-row .name{font-weight:900;font-size:15px;letter-spacing:-0.01em}
+  .profile-row .email{font-size:12px;color:#9a9aa3;margin-top:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;
+  }
+  .profile-pills{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:rgba(11,11,13,0.92);backdrop-filter:blur(16px);
+    border-top:1px solid rgba(255,255,255,0.06);
+    display:grid;grid-template-columns:repeat(5,1fr);
+    padding:8px 4px max(8px, env(safe-area-inset-bottom));
+  }
+  .nav-item{
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;
+    color:#7a7a82;cursor:pointer;transition:color .15s;border-radius:10px;
+  }
+  .nav-item svg{width:22px;height:22px}
+  .nav-item span{font-size:10px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase}
+  .nav-item.active{color:#ff4500}
+
+  /* ---------- BODY PARTS / TARGET ---------- */
+  .muscle-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:4px;
+  }
+  .muscle-card{
+    position:relative;overflow:hidden;
+    background:#141418;border:1px solid #1f1f25;border-radius:18px;
+    padding:22px 16px 18px;cursor:pointer;
+    transition:border-color .15s,transform .1s;
+    display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+  }
+  .muscle-card:active{transform:scale(0.97)}
+  .muscle-card.selected{border-color:#ff4500;background:#1a1008}
+  .muscle-card .mc-icon{width:56px;height:56px;margin-bottom:6px;border-radius:10px;overflow:hidden;flex-shrink:0}
+  .muscle-card .mc-icon img{width:100%;height:100%;object-fit:cover;display:block}
+  .muscle-card .mc-name{font-size:15px;font-weight:900;letter-spacing:0.04em;text-transform:uppercase;color:#f5f5f7}
+  .muscle-card .mc-count{font-size:11px;color:#ff7a3d;font-weight:700;letter-spacing:0.06em}
+  .muscle-card::after{content:'›';position:absolute;right:14px;bottom:16px;font-size:20px;color:#3a3a42}
+  .muscle-card.selected::after{color:#ff4500}
+
+  /* target workout list */
+  .twk-list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .twk-card{
+    background:#141418;border:1px solid #1f1f25;border-radius:14px;
+    padding:16px;cursor:pointer;transition:border-color .15s;
+  }
+  .twk-card:active{border-color:#ff4500}
+  .twk-card .tw-name{font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:0.02em}
+  .twk-card .tw-meta{font-size:12px;color:#9a9aa3;margin-top:4px;font-weight:600}
+  .twk-card .tw-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .twk-card .tw-tag{font-size:10px;font-weight:800;letter-spacing:0.1em;padding:3px 8px;border-radius:6px;background:#1f1f25;color:#cfcfd4;text-transform:uppercase}
+  .twk-card .tw-tag.orange{background:#2a1200;color:#ff7a3d}
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;color:#ff4500;font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase}
+  .back-row svg{width:18px;height:18px}
+
+  /* target workout detail overlay */
+  #target-detail{z-index:70;display:none;background:#0b0b0d}
+  .td-ex-card{background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:14px;margin-bottom:10px}
+  .td-ex-num{font-size:11px;font-weight:900;color:#ff4500;letter-spacing:0.1em;margin-bottom:4px}
+  .td-ex-name{font-size:15px;font-weight:900;text-transform:uppercase}
+  .td-ex-sets{font-size:13px;color:#ff7a3d;font-weight:700;margin-top:3px}
+  .td-ex-tip{font-size:12px;color:#9a9aa3;margin-top:6px;line-height:1.5}
+  .td-ex-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .watch-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#1a0800;border:1px solid #ff4500;border-radius:8px;
+    padding:7px 12px;font-size:11px;font-weight:900;color:#ff4500;
+    letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;
+    transition:background .15s;text-decoration:none;margin-top:8px;
+  }
+  .watch-btn:active{background:#2a1200}
+  .watch-btn svg{width:14px;height:14px;flex-shrink:0}
+
+  /* YouTube modal */
+  #yt-modal{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,0.92);display:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  #yt-modal.open{display:flex}
+  .yt-modal-inner{width:100%;max-width:560px}
+  .yt-modal-top{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .yt-modal-title{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;color:#f5f5f7;flex:1;margin-right:12px}
+  .yt-close{
+    width:36px;height:36px;border-radius:50%;background:#1f1f25;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .yt-close svg{width:18px;height:18px;color:#f5f5f7}
+  .yt-frame-wrap{
+    position:relative;width:100%;padding-top:56.25%;
+    border-radius:14px;overflow:hidden;background:#000;
+  }
+  .yt-frame-wrap iframe{
+    position:absolute;inset:0;width:100%;height:100%;border:none;
+  }
+
+  @media (min-width:560px){
+    .container{max-width:560px;margin:0 auto}
+    .topbar > div{max-width:560px;margin:0 auto}
+    .overlay-body{max-width:560px;margin:0 auto}
+    .overlay-top{justify-content:flex-start}
+    .bottom-nav{max-width:560px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0}
+  }
+
+    .auth-tabs { display:flex; gap:0; margin-bottom:20px; border-radius:10px; overflow:hidden; border:1px solid var(--border,#2a2a32); }
+    .auth-tab { flex:1; padding:10px; font-size:12px; font-weight:900; letter-spacing:1.5px; color:var(--text2,#888); background:transparent; border:none; cursor:pointer; transition:all 0.2s; }
+    .auth-tab.active { background:var(--accent,#ff4500); color:#fff; }
+    .gender-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+</style>
+
+<script>
+// Safe storage shim — works in all environments including file:// and iframes
+(function(){
+  const _store = {};
+  const _safe = {
+    getItem: function(k){ return _store.hasOwnProperty(k) ? _store[k] : null; },
+    setItem: function(k, v){ _store[k] = String(v); },
+    removeItem: function(k){ delete _store[k]; },
+    clear: function(){ Object.keys(_store).forEach(function(k){ delete _store[k]; }); }
+  };
+  try {
+    localStorage.setItem('__test__', '1');
+    localStorage.removeItem('__test__');
+  } catch(e) {
+    Object.defineProperty(window, 'localStorage', { value: _safe });
+    Object.defineProperty(window, 'sessionStorage', { value: _safe });
+  }
+})();
+</script>
+
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l4-4 12 12-4 4"/><path d="M14 14l-4 4-8-8 4-4"/><path d="M2 22l4-4"/><path d="M18 2l4 4"/></svg>
+      </div>
+      <div class="brand-name">ForgeFit</div>
+    </div>
+    <div class="auth-title">READY TO FORGE?</div>
+    <div class="auth-sub">No excuses. No shortcuts. Just work.</div>
+
+    <!-- Auth Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">SIGN IN</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">CREATE ACCOUNT</button>
+    </div>
+
+    <!-- Sign In Form -->
+    <div id="signin-panel">
+      <form id="auth-form" autocomplete="on">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@forgefit.app" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+        <div class="remember">
+          <span>Remember Me</span>
+          <div id="remember-switch" class="pill-switch on" role="switch" aria-checked="true"></div>
+        </div>
+        <button type="button" class="btn-primary" onclick="doSignIn()">FORGE IN</button>
+        <div id="auth-error" class="auth-error"></div>
+        <div class="auth-hint">DEMO ACCESS: demo@forgefit.app / demo</div>
+      </form>
+    </div>
+
+    <!-- Create Account Form -->
+    <div id="signup-panel" style="display:none">
+      <form id="signup-form" autocomplete="on">
+        <div class="field">
+          <label for="su-name">Your Name</label>
+          <input id="su-name" type="text" placeholder="First name" autocomplete="given-name" required />
+        </div>
+        <div class="field">
+          <label for="su-email">Email</label>
+          <input id="su-email" type="email" placeholder="you@forgefit.app" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="su-password">Password</label>
+          <input id="su-password" type="password" placeholder="Create a password" autocomplete="new-password" required />
+        </div>
+        <div class="field">
+          <label>I AM A</label>
+          <div class="gender-row" id="signup-gender-row">
+            <div class="gender-btn active" data-gender="male" onclick="selectSignupGender('male')"><span style="font-size:20px">♂</span><span>MALE</span></div>
+            <div class="gender-btn" data-gender="female" onclick="selectSignupGender('female')"><span style="font-size:20px">♀</span><span>FEMALE</span></div>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" onclick="doSignUp()" style="margin-top:8px">CREATE ACCOUNT</button>
+        <div id="signup-error" class="auth-error"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" style="display:none">
+
+  <!-- TODAY -->
+  <div id="view-today" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1 id="greeting">Good morning</h1>
+        <h2 id="user-name">Athlete</h2>
+      </div>
+    </div>
+    <div class="container">
+      <div class="featured" id="featured-card">
+        <div class="label">TODAY'S BATTLE</div>
+        <div class="name" id="featured-name">Upper — Push</div>
+        <div class="meta" id="featured-meta">Build Beast Cut · 7 exercises</div>
+        <div class="cta">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          LET'S GO
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="v" id="stat-streak">0</div><div class="l">Day Streak</div></div>
+        <div class="stat-card"><div class="v" id="stat-done">0</div><div class="l">Workouts</div></div>
+        <div class="stat-card"><div class="v" id="stat-adh">0%</div><div class="l">Adherence</div></div>
+      </div>
+
+      <div class="section-title">RECOMMENDED FOR YOU</div>
+      <div class="reco-list" id="reco-list"></div>
+
+      <div class="section-title">QUICK ACCESS</div>
+      
+      <div class="quick-list">
+        <div class="quick-item" onclick="showView('view-programs')">
+          <div class="quick-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 4v6"/></svg></div>
+          <div><div class="t">CHOOSE YOUR WEAPON</div><div class="s">16 training plans</div></div>
+        </div>
+        <div class="quick-item" onclick="showView('view-progress')">
+          <div class="quick-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
+          <div><div class="t">SEE YOUR GAINS</div><div class="s">Streak and adherence</div></div>
+        </div>
+        <div class="quick-item" onclick="showView('view-more')">
+          <div class="quick-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div><div class="t">REST TIMER</div><div class="s">Between-set countdown</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRAMS -->
+  <div id="view-programs" style="display:none">
+    <div class="topbar"><div><h1>Train</h1><h2>Programs</h2></div></div>
+    <div class="container">
+      <div class="section-title">FOR</div>
+      <div class="filter-row" id="gender-filter">
+        <div class="pill active" data-val="All">All</div>
+        <div class="pill" data-val="male">Male</div>
+        <div class="pill" data-val="female">Female</div>
+      </div>
+      <div class="section-title">GOAL</div>
+      <div class="filter-row" id="goal-filter">
+        <div class="pill active" data-val="All">All</div>
+        <div class="pill" data-val="Muscle">Muscle</div>
+        <div class="pill" data-val="Lean">Lean</div>
+        <div class="pill" data-val="Athletic">Athletic</div>
+        <div class="pill" data-val="Fat Loss">Fat Loss</div>
+      </div>
+      <div class="section-title">DIFFICULTY</div>
+      <div class="filter-row" id="diff-filter">
+        <div class="pill active" data-val="All">All</div>
+        <div class="pill" data-val="Beginner">Beginner</div>
+        <div class="pill" data-val="Intermediate">Intermediate</div>
+        <div class="pill" data-val="Expert">Expert</div>
+      </div>
+      <div class="program-list" id="program-list"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="view-progress" style="display:none">
+    <div class="topbar"><div><h1>Track</h1><h2>Progress</h2></div></div>
+    <div class="container">
+      <div class="big-stat">
+        <div class="v" id="prog-streak">0</div>
+        <div class="l">Current Streak — Days</div>
+      </div>
+      <div class="big-stat">
+        <div class="v" id="prog-adh">0%</div>
+        <div class="l">Adherence This Month</div>
+        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="big-stat">
+        <div class="v" id="prog-vol">0</div>
+        <div class="l">Total Volume (Workouts)</div>
+      </div>
+      <div class="cal-card">
+        <div class="cal-head">
+          <div class="m" id="cal-month">Month</div>
+          <div style="font-size:12px;color:#9a9aa3;font-weight:600">Tap to log</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MORE -->
+  <div id="view-more" style="display:none">
+    <div class="topbar"><div><h1>Tools</h1><h2>More</h2></div></div>
+    <div class="container">
+      <div class="section-title">REST TIMER</div>
+      <div class="timer-card">
+        <div class="timer-display" id="t-display">01:30</div>
+        <div class="timer-rows">
+          <div class="timer-adj">
+            <div class="lab">Minutes</div>
+            <div class="row">
+              <div class="step-btn" id="m-down">−</div>
+              <div class="step-val" id="t-min">1</div>
+              <div class="step-btn" id="m-up">+</div>
+            </div>
+          </div>
+          <div class="timer-adj">
+            <div class="lab">Seconds</div>
+            <div class="row">
+              <div class="step-btn" id="s-down">−</div>
+              <div class="step-val" id="t-sec">30</div>
+              <div class="step-btn" id="s-up">+</div>
+            </div>
+          </div>
+        </div>
+        <div class="timer-actions">
+          <button class="btn-primary" id="t-toggle">Start</button>
+          <button class="btn-secondary" id="t-reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="section-title">PROFILE</div>
+      <div class="profile-card">
+        <div class="profile-row">
+          <div class="avatar" id="avatar-initial">A</div>
+          <div style="flex:1;min-width:0">
+            <div class="name" id="prof-name">Athlete</div>
+            <div class="email" id="prof-email">demo@forgefit.app</div>
+          </div>
+        </div>
+        <div class="profile-pills">
+          <div class="tag">Muscle</div>
+          <div class="tag gray">Intermediate</div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <button class="btn-secondary" id="sign-out-btn">SIGN OUT</button>
+      </div>
+      <div style="text-align:center;font-size:11px;color:#5a5a62;margin-top:24px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700">ForgeFit v1.0 — FORGE IT DAILY</div>
+    </div>
+  </div>
+
+  <!-- TARGET VIEW -->
+  <div id="view-target" style="display:none">
+    <div class="topbar"><div><h1>Target</h1><h2 id="target-heading">Pick Your Muscle</h2></div></div>
+    <div class="container" id="target-container">
+      <!-- muscle grid shown by default, workout list shown after selection -->
+      <div id="muscle-grid-view">
+        <div class="section-title" style="margin-bottom:12px">CHOOSE YOUR TARGET</div>
+        <div class="muscle-grid" id="muscle-grid"></div>
+      </div>
+      <div id="muscle-workout-list" style="display:none">
+        <div class="back-row" onclick="showMuscleGrid()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          ALL MUSCLES
+        </div>
+        <div class="section-title" id="muscle-wk-title" style="margin-bottom:12px">WORKOUTS</div>
+        <div class="twk-list" id="twk-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-view="view-today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      <span>Today</span>
+    </div>
+    <div class="nav-item" data-view="view-programs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
+      <span>Programs</span>
+    </div>
+    <div class="nav-item" data-view="view-target">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+      <span>Target</span>
+    </div>
+    <div class="nav-item" data-view="view-progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+      <span>Progress</span>
+    </div>
+    <div class="nav-item" data-view="view-more">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span>More</span>
+    </div>
+  </nav>
+</div>
+
+<!-- PROGRAM DETAIL OVERLAY -->
+<div id="program-detail" class="overlay">
+  <div class="overlay-top">
+    <div class="icon-btn" onclick="closeProgram()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="ttl" id="pd-top-title">Program</div>
+  </div>
+  <div class="overlay-body">
+    <div class="pd-hero">
+      <h1 id="pd-name">Program Name</h1>
+      <div class="prog-tags" id="pd-tags"></div>
+    </div>
+    <div class="pd-section">
+      <h3>THE MISSION</h3>
+      <div class="pd-about" id="pd-about">Description here.</div>
+    </div>
+    <div class="pd-section">
+      <h3>YOUR BATTLE PLAN</h3>
+      <div id="pd-schedule"></div>
+    </div>
+    <div class="pd-section">
+      <h3>YOUR ARSENAL</h3>
+      <div class="chip-row" id="pd-equipment"></div>
+    </div>
+    <button class="btn-primary start-btn-fixed" id="pd-start">START THE GRIND</button>
+  </div>
+</div>
+
+<!-- YOUTUBE MODAL -->
+<div id="yt-modal">
+  <div class="yt-modal-inner">
+    <div class="yt-modal-top">
+      <div class="yt-modal-title" id="yt-modal-title">Exercise</div>
+      <div class="yt-close" onclick="closeYT()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="yt-frame-wrap">
+      <iframe id="yt-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- TARGET WORKOUT DETAIL OVERLAY -->
+<div id="target-detail" class="overlay">
+  <div class="overlay-top">
+    <div class="icon-btn" onclick="closeTargetDetail()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="ttl" id="td-top-title">Workout</div>
+  </div>
+  <div class="overlay-body">
+    <div class="pd-hero">
+      <div style="font-size:12px;color:#ff4500;font-weight:800;letter-spacing:0.1em;text-transform:uppercase" id="td-muscle">Chest</div>
+      <h1 id="td-name" style="margin-top:6px">Workout</h1>
+      <div style="font-size:13px;color:#9a9aa3;font-weight:600;margin-top:4px" id="td-meta">Meta</div>
+    </div>
+    <div class="pd-section">
+      <h3>THE EXERCISES</h3>
+      <div id="td-exercises"></div>
+    </div>
+    <button class="btn-primary start-btn-fixed">ATTACK THIS WORKOUT</button>
+  </div>
+</div>
+
+<!-- DAY DETAIL OVERLAY -->
+<div id="day-detail" class="overlay">
+  <div class="overlay-top">
+    <div class="icon-btn" onclick="closeDayWorkout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="ttl" id="dd-top-title">Workout</div>
+  </div>
+  <div class="overlay-body">
+    <div class="pd-hero">
+      <div style="font-size:12px;color:#9a9aa3;font-weight:700;letter-spacing:0.08em;text-transform:uppercase" id="dd-program">Program</div>
+      <h1 id="dd-name" style="margin-top:6px">Workout</h1>
+      <div style="font-size:13px;color:#ff7a3d;font-weight:700;margin-top:4px" id="dd-type">Type</div>
+    </div>
+    <div class="pd-section">
+      <h3>THE EXERCISES</h3>
+      <div id="dd-exercises"></div>
+    </div>
+            <div style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px">I AM A</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="profile-gender-row">
+            <div class="gender-btn" id="pg-male" data-gender="male" onclick="setProfileGender('male')"><span style="font-size:18px">♂</span><span>MALE</span></div>
+            <div class="gender-btn" id="pg-female" data-gender="female" onclick="setProfileGender('female')"><span style="font-size:18px">♀</span><span>FEMALE</span></div>
+          </div>
+        </div>
+        <button class="btn-primary start-btn-fixed">ATTACK THIS WORKOUT</button>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const PROGRAMS = [
+  {
+    name:'Build Beast Cut', goal:'Muscle', difficulty:'Expert', duration:'8 Weeks', days:'4 Days/Week', gender:'any',
+    about:'A serious hypertrophy block focused on heavy compound lifts and targeted isolation work to add lean muscle while staying lean. Built around progressive overload and structured rest.',
+    equipment:['Barbell','Dumbbells','Cables','Bench','Pull-Up Bar'],
+    schedule:[
+      {day:'Mon', name:'Upper — Push', type:'Chest · Shoulders · Triceps', exercises:[
+        {name:'Barbell Bench Press', sets:'4 sets x 8 reps', tip:'Control the descent 3 seconds. Drive through the chest at the top.'},
+        {name:'Incline Dumbbell Press', sets:'3 sets x 10 reps', tip:'30 degree incline, keep elbows slightly tucked.'},
+        {name:'Cable Fly', sets:'3 sets x 12 reps', tip:'Full stretch at the bottom, hard squeeze at the top.'},
+        {name:'Overhead Press', sets:'4 sets x 8 reps', tip:'Brace your core, avoid arching the lower back.'},
+        {name:'Lateral Raise', sets:'3 sets x 15 reps', tip:'Lead with your elbows, slight forward lean.'},
+        {name:'Tricep Pushdown', sets:'3 sets x 12 reps', tip:'Pin elbows to your sides, full extension every rep.'},
+        {name:'Skull Crushers', sets:'3 sets x 10 reps', tip:'Lower the bar to your forehead, keep elbows stationary.'}
+      ]},
+      {day:'Tue', name:'Lower — Quad Dominant', type:'Quads · Glutes · Calves', exercises:[
+        {name:'Back Squat', sets:'5 sets x 5 reps', tip:'Break parallel, drive knees out over toes.'},
+        {name:'Romanian Deadlift', sets:'4 sets x 8 reps', tip:'Hinge at the hips, keep the bar close to your legs.'},
+        {name:'Leg Press', sets:'3 sets x 12 reps', tip:'Full depth, do not lock out knees at the top.'},
+        {name:'Walking Lunges', sets:'3 sets x 20 steps', tip:'Long stride, keep front knee over ankle.'},
+        {name:'Leg Extension', sets:'3 sets x 15 reps', tip:'Pause for 1 second at the top of each rep.'},
+        {name:'Standing Calf Raise', sets:'4 sets x 20 reps', tip:'Full stretch at the bottom on every single rep.'}
+      ]},
+      {day:'Wed', name:'Rest — Active Recovery', type:'Mobility · Foam Roll', exercises:[
+        {name:'Foam Roll Full Body', sets:'10 minutes', tip:'Spend 60 seconds on each tight or sore area.'},
+        {name:'Hip Flexor Stretch', sets:'3 x 60 sec each side', tip:'Keep your pelvis tucked under throughout.'},
+        {name:'Band Pull-Apart', sets:'3 x 20 reps', tip:'Arms straight, go through the full range of motion.'},
+        {name:'Cat-Cow Mobility', sets:'3 x 10 reps', tip:'Slow and deliberate, match movement to your breathing.'}
+      ]},
+      {day:'Thu', name:'Upper — Pull', type:'Back · Biceps · Rear Delts', exercises:[
+        {name:'Deadlift', sets:'5 sets x 3 reps', tip:'Hips hinge back, bar directly over mid-foot, take a big breath.'},
+        {name:'Barbell Row', sets:'4 sets x 8 reps', tip:'Pull to your lower chest, squeeze your shoulder blades together.'},
+        {name:'Lat Pulldown', sets:'3 sets x 10 reps', tip:'Wide grip, lean back slightly, pull bar to upper chest.'},
+        {name:'Seated Cable Row', sets:'3 sets x 12 reps', tip:'Chest tall, drive elbows back past your torso.'},
+        {name:'Face Pull', sets:'3 sets x 15 reps', tip:'High anchor point, pull to your face with external rotation.'},
+        {name:'Barbell Curl', sets:'3 sets x 10 reps', tip:'Full supination at the top, slow controlled descent.'},
+        {name:'Hammer Curl', sets:'3 sets x 12 reps', tip:'Neutral grip throughout, do not swing.'}
+      ]},
+      {day:'Fri', name:'Lower — Posterior Chain', type:'Hamstrings · Glutes · Core', exercises:[
+        {name:'Sumo Deadlift', sets:'4 sets x 6 reps', tip:'Wide stance, toes out, keep torso more vertical.'},
+        {name:'Bulgarian Split Squat', sets:'3 sets x 10 reps each side', tip:'Rear foot elevated, get a deep front knee bend.'},
+        {name:'Leg Curl Machine', sets:'4 sets x 12 reps', tip:'Full hip extension at the start, curl completely.'},
+        {name:'Hip Thrust', sets:'3 sets x 12 reps', tip:'Drive through the heel, hard glute squeeze at the top.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Neutral spine, squeeze glutes, do not let hips drop.'},
+        {name:'Ab Wheel Rollout', sets:'3 x 10 reps', tip:'Brace hard before rolling, keep hips in line with spine.'}
+      ]},
+      {day:'Sat', name:'Arms and Abs', type:'Biceps · Triceps · Core', exercises:[
+        {name:'EZ-Bar Curl', sets:'3 sets x 12 reps', tip:'Full supination at the top, slow negative.'},
+        {name:'Incline Dumbbell Curl', sets:'3 sets x 10 reps', tip:'Let arms hang fully for maximum bicep stretch.'},
+        {name:'Close-Grip Bench Press', sets:'3 sets x 10 reps', tip:'Keep elbows close to your torso throughout.'},
+        {name:'Tricep Dips', sets:'3 sets x 12 reps', tip:'Upright torso to emphasize triceps over chest.'},
+        {name:'Hanging Leg Raise', sets:'3 x 15 reps', tip:'Control the swing, slow descent on every rep.'},
+        {name:'Russian Twist', sets:'3 x 20 reps', tip:'Heels off the ground, rotate fully each side.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'Sleep 8 hours. Hit your protein target. This is where you actually grow.'}
+      ]}
+    ]
+  },
+  {
+    name:'Metabolic Recomp', goal:'Fat Loss', difficulty:'Intermediate', duration:'12 Weeks', days:'5 Days/Week', gender:'any',
+    about:'A balanced recomp protocol that pairs three full-body lifting sessions with cardio and active recovery. Designed to drop body fat while protecting hard-earned muscle.',
+    equipment:['Dumbbells','Pull-Up Bar','Bench','Cables','Cardio Machine'],
+    schedule:[
+      {day:'Mon', name:'Full Body Lift A', type:'Compound Movements — Heavy', exercises:[
+        {name:'Goblet Squat', sets:'4 sets x 10 reps', tip:'Hold dumbbell at chest, squat deep, keep chest tall.'},
+        {name:'Dumbbell Row', sets:'4 sets x 10 reps each side', tip:'Flat back, drive your elbow to your hip.'},
+        {name:'Push-Up', sets:'3 sets x 15 reps', tip:'Full range of motion, do not let hips sag.'},
+        {name:'DB Romanian Deadlift', sets:'3 sets x 12 reps', tip:'Soft knee, hinge from the hips, feel the hamstring stretch.'},
+        {name:'Plank Hold', sets:'3 x 40 seconds', tip:'Squeeze glutes and abs simultaneously.'}
+      ]},
+      {day:'Tue', name:'Cardio — Steady State', type:'30-40 min walk or jog', exercises:[
+        {name:'Brisk Walk or Light Jog', sets:'30 to 40 minutes', tip:'Stay in fat-burning zone, 60 to 70 percent of your max heart rate.'},
+        {name:'Bodyweight Squat Warmup', sets:'2 x 15 reps', tip:'Use this as a warmup before your walk or jog.'}
+      ]},
+      {day:'Wed', name:'Full Body Lift B', type:'Hypertrophy Focus', exercises:[
+        {name:'Dumbbell Bench Press', sets:'4 sets x 10 reps', tip:'Full range of motion, elbows at 45 degrees.'},
+        {name:'Lat Pulldown', sets:'4 sets x 10 reps', tip:'Wide grip, full stretch at the top of each rep.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 12 reps', tip:'Seated or standing, keep neutral spine.'},
+        {name:'DB Lunge', sets:'3 sets x 12 reps each side', tip:'Step through fully, drive back up from the heel.'},
+        {name:'Cable Crunch', sets:'3 sets x 15 reps', tip:'Crunch down to your knees, slow on the way back up.'}
+      ]},
+      {day:'Thu', name:'HIIT Cardio', type:'20 min intervals', exercises:[
+        {name:'HIIT Intervals', sets:'20 minutes total', tip:'40 seconds hard effort, 20 seconds rest. Repeat 20 rounds.'},
+        {name:'Choose Your Exercise', sets:'Pick one', tip:'Jump rope, sprints, burpees, or stationary bike all work great.'}
+      ]},
+      {day:'Fri', name:'Full Body Lift C', type:'Power and Strength', exercises:[
+        {name:'Trap Bar Deadlift', sets:'4 sets x 6 reps', tip:'Hips back, chest up, drive through the floor explosively.'},
+        {name:'Pull-Up or Band-Assisted', sets:'4 sets x 8 reps', tip:'Dead hang start, get your chin clearly over the bar.'},
+        {name:'Incline DB Press', sets:'3 sets x 10 reps', tip:'30 degree incline, elbows tucked at 45 degrees.'},
+        {name:'Step-Up', sets:'3 sets x 12 reps each side', tip:'Full hip extension at the very top of each rep.'},
+        {name:'Hanging Knee Raise', sets:'3 x 12 reps', tip:'Abs initiate the movement, control the swing.'}
+      ]},
+      {day:'Sat', name:'Active Recovery', type:'Walk — Yoga — Stretch', exercises:[
+        {name:'Easy Walk', sets:'20 to 30 minutes', tip:'Conversational pace, get outside if you can.'},
+        {name:'Yoga or Stretching', sets:'15 minutes', tip:'Focus on hips, hamstrings, and shoulders.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'Meal prep, hydrate well, sleep 8 hours.'}
+      ]}
+    ]
+  },
+  {
+    name:'Bars and Bodyweight Rebuild', goal:'Athletic', difficulty:'Beginner', duration:'10 Weeks', days:'3 Days/Week', gender:'any',
+    about:'Build a complete athletic foundation using nothing but a pull-up bar and your own bodyweight. Great for travel, home training, or rebuilding after time off.',
+    equipment:['Pull-Up Bar','Floor Space','Towel'],
+    schedule:[
+      {day:'Mon', name:'Push Day', type:'Push-Ups — Dips — Pike Press', exercises:[
+        {name:'Push-Up', sets:'4 sets x 10 reps', tip:'Hands shoulder-width, chest all the way to the floor.'},
+        {name:'Pike Push-Up', sets:'3 sets x 8 reps', tip:'Hips high in the air, this targets your shoulders.'},
+        {name:'Chair or Bar Dip', sets:'3 sets x 10 reps', tip:'Upright torso, lock out fully at the top.'},
+        {name:'Diamond Push-Up', sets:'3 sets x 8 reps', tip:'Hands form a diamond shape, keep elbows close.'},
+        {name:'Plank', sets:'3 x 40 seconds', tip:'Hips level, breathe steadily, squeeze everything.'}
+      ]},
+      {day:'Tue', name:'Rest', type:'Light activity only', exercises:[
+        {name:'Light Walk', sets:'20 to 30 minutes optional', tip:'Just keep moving, nothing intense today.'}
+      ]},
+      {day:'Wed', name:'Pull Day', type:'Pull-Ups — Rows — Chin-Ups', exercises:[
+        {name:'Pull-Up or Negative', sets:'4 sets x 5 reps', tip:'Use a 3-second slow descent if full pull-ups are too hard yet.'},
+        {name:'Australian Row', sets:'3 sets x 10 reps', tip:'Get under a table or bar, pull your chest up to it.'},
+        {name:'Chin-Up', sets:'3 sets x 6 reps', tip:'Supinated grip, squeeze your biceps hard at the top.'},
+        {name:'Band Pull-Apart', sets:'3 x 15 reps', tip:'Arms straight, go through the full range.'},
+        {name:'Dead Hang', sets:'3 x 20 seconds', tip:'Builds grip strength and shoulder health simultaneously.'}
+      ]},
+      {day:'Thu', name:'Rest', type:'Light activity only', exercises:[
+        {name:'Light Walk or Mobility', sets:'20 minutes optional', tip:'Active recovery helps more than full rest.'}
+      ]},
+      {day:'Fri', name:'Lower and Core', type:'Squats — Lunges — Planks', exercises:[
+        {name:'Bodyweight Squat', sets:'4 sets x 15 reps', tip:'Full depth, pause at the very bottom.'},
+        {name:'Reverse Lunge', sets:'3 sets x 10 reps each side', tip:'Controlled descent, knee hovers just above the floor.'},
+        {name:'Glute Bridge', sets:'3 sets x 20 reps', tip:'Drive hips up hard, squeeze glutes at the top.'},
+        {name:'Calf Raise', sets:'3 sets x 20 reps', tip:'Full range of motion, pause at the top.'},
+        {name:'Plank', sets:'3 x 40 seconds', tip:'Hold steady, do not hold your breath.'},
+        {name:'Mountain Climber', sets:'3 x 20 reps', tip:'Alternate legs quickly, keep hips level throughout.'}
+      ]},
+      {day:'Sat', name:'Active Play', type:'Sport — Outdoor — Fun', exercises:[
+        {name:'Any Physical Activity', sets:'30 to 60 minutes', tip:'Hike, swim, play a sport — whatever you actually enjoy.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'Rest is when you grow. You earned it.'}
+      ]}
+    ]
+  },
+  {
+    name:'Stomach Fat Starter', goal:'Fat Loss', difficulty:'Beginner', duration:'6 Weeks', days:'4 Days/Week', gender:'any',
+    about:'A gentle on-ramp for total beginners targeting waistline fat loss through walking, basic circuits, and core stability. Low-impact and approachable.',
+    equipment:['Resistance Band','Floor Space','Comfortable Shoes'],
+    schedule:[
+      {day:'Mon', name:'Full Body Circuit A', type:'Bodyweight — Light Weights', exercises:[
+        {name:'Bodyweight Squat', sets:'3 sets x 12 reps', tip:'Go to parallel or deeper, keep chest tall.'},
+        {name:'Push-Up or Knee Push-Up', sets:'3 sets x 10 reps', tip:'Straight line from knee or toe to shoulder.'},
+        {name:'Band Row', sets:'3 sets x 12 reps', tip:'Anchor band at chest height, pull elbows straight back.'},
+        {name:'Glute Bridge', sets:'3 sets x 15 reps', tip:'Squeeze at the top, hold for 1 second each rep.'},
+        {name:'Dead Bug', sets:'3 x 8 reps each side', tip:'Keep lower back completely flat on the floor at all times.'}
+      ]},
+      {day:'Tue', name:'30-Minute Walk', type:'Moderate pace — fat burning zone', exercises:[
+        {name:'Brisk Walk', sets:'30 minutes', tip:'60 to 70 percent effort. Swing your arms naturally.'}
+      ]},
+      {day:'Wed', name:'Full Body Circuit B', type:'Core Focus — Mobility', exercises:[
+        {name:'Reverse Lunge', sets:'3 sets x 10 reps each side', tip:'Controlled movement, knee hovers above the floor.'},
+        {name:'Band Pull-Apart', sets:'3 x 15 reps', tip:'Helps keep your shoulders healthy over time.'},
+        {name:'Incline Push-Up', sets:'3 sets x 12 reps', tip:'Hands on a counter or bench, works the same muscles with less load.'},
+        {name:'Seated Band Row', sets:'3 sets x 15 reps', tip:'Sit tall, pull to your belly button.'},
+        {name:'Plank', sets:'3 x 25 seconds', tip:'Work up to 60 seconds over the 6 weeks.'}
+      ]},
+      {day:'Thu', name:'Rest or Walk', type:'Light activity', exercises:[
+        {name:'Optional Light Walk', sets:'20 minutes', tip:'Light movement actually speeds up recovery.'}
+      ]},
+      {day:'Fri', name:'Full Body Circuit C', type:'Endurance Focus', exercises:[
+        {name:'Step-Up on Low Step', sets:'3 sets x 10 reps each side', tip:'Use a stair or low bench, full hip extension at top.'},
+        {name:'Push-Up', sets:'3 sets x 10 reps', tip:'Progress from knee version to full over the 6 weeks.'},
+        {name:'Band Deadlift', sets:'3 sets x 12 reps', tip:'Stand on the band, hinge and then stand up tall.'},
+        {name:'Side Plank', sets:'3 x 20 seconds each side', tip:'Hips up, body in a perfectly straight line.'},
+        {name:'March in Place', sets:'3 x 30 seconds', tip:'Drive knees high, pump arms with each step.'}
+      ]},
+      {day:'Sat', name:'45-Minute Walk', type:'Longer steady pace', exercises:[
+        {name:'Long Steady Walk', sets:'45 minutes', tip:'Conversational pace. Enjoy the time outside.'}
+      ]},
+      {day:'Sun', name:'Rest', type:'Full recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'You earned it. Sleep well, eat enough protein, recharge.'}
+      ]}
+    ]
+  },
+  {
+    name:'Body Beast Inspired', goal:'Muscle', difficulty:'Expert', duration:'90 Days', days:'5 Days/Week', gender:'male',
+    about:'A high-volume mass-building program built around giant sets and dynamic set training. Maximum hypertrophy through controlled intensity techniques.',
+    equipment:['Barbell','Dumbbells','Cables','Bench','Pull-Up Bar'],
+    schedule:[
+      {day:'Mon', name:'Chest and Tris', type:'Giant Sets — Heavy Push', exercises:[
+        {name:'Barbell Bench Press', sets:'Giant Set: 15 — 12 — 8 — 8 reps', tip:'Increase weight each set. Minimal rest between sets in the giant set.'},
+        {name:'Incline DB Press', sets:'3 sets x 10 reps', tip:'30 degree incline, stretch all the way at the bottom.'},
+        {name:'Cable Fly', sets:'3 sets x 12 reps', tip:'Full chest stretch at the bottom, hard squeeze at the top.'},
+        {name:'Tricep Pushdown', sets:'3 sets x 15 reps', tip:'Full extension every rep, elbows pinned to sides.'},
+        {name:'Overhead Tricep Extension', sets:'3 sets x 12 reps', tip:'Use EZ-bar or rope, get a full stretch overhead.'},
+        {name:'Dips', sets:'3 sets x 10 reps', tip:'Lean slightly forward to put more emphasis on the chest.'}
+      ]},
+      {day:'Tue', name:'Legs', type:'Quads — Hamstrings — Calves', exercises:[
+        {name:'Back Squat', sets:'Giant Set: 15 — 12 — 8 — 8 reps', tip:'Drive from the heels, keep your chest tall throughout.'},
+        {name:'Leg Press', sets:'3 sets x 12 reps', tip:'Full range of motion, never lock out the knees.'},
+        {name:'Walking Lunge', sets:'3 sets x 20 steps', tip:'Long stride, full hip extension at the top.'},
+        {name:'Leg Curl', sets:'4 sets x 12 reps', tip:'Full hip extension to start, slow eccentric on the way down.'},
+        {name:'Leg Extension', sets:'3 sets x 15 reps', tip:'Pause for 1 second at the top of every rep.'},
+        {name:'Standing Calf Raise', sets:'4 sets x 20 reps', tip:'Full stretch at the bottom on every single rep.'}
+      ]},
+      {day:'Wed', name:'Back and Bis', type:'Width — Thickness — Curl', exercises:[
+        {name:'Deadlift', sets:'Giant Set: 15 — 12 — 8 — 8 reps', tip:'Bar stays close to your body, hinge hard at the hips.'},
+        {name:'Wide-Grip Pull-Up', sets:'4 sets x 8 reps', tip:'Full dead hang at the bottom, chin clears the bar.'},
+        {name:'Barbell Row', sets:'3 sets x 10 reps', tip:'Chest tall, pull the bar to your lower chest.'},
+        {name:'Seated Cable Row', sets:'3 sets x 12 reps', tip:'Tall posture, drive elbows back past your torso.'},
+        {name:'Barbell Curl', sets:'Giant Set: 15 — 12 — 8 reps', tip:'Full supination at the top, slow controlled descent.'},
+        {name:'Concentration Curl', sets:'3 sets x 10 reps each side', tip:'Elbow braced on inner thigh, zero body swing.'}
+      ]},
+      {day:'Thu', name:'Shoulders', type:'Press — Lateral — Rear Delt', exercises:[
+        {name:'Overhead Press', sets:'Giant Set: 15 — 12 — 8 — 8 reps', tip:'Strict press, absolutely no leg drive.'},
+        {name:'DB Lateral Raise', sets:'4 sets x 15 reps', tip:'Lead with your elbows, little finger slightly higher.'},
+        {name:'Front Raise', sets:'3 sets x 12 reps', tip:'Alternate arms, controlled pace throughout.'},
+        {name:'Reverse Pec Deck', sets:'3 sets x 15 reps', tip:'Squeeze rear delts hard at the peak of each rep.'},
+        {name:'Barbell Shrugs', sets:'4 sets x 20 reps', tip:'Hold for 1 second at the top, full drop at the bottom.'}
+      ]},
+      {day:'Fri', name:'Arms and Abs', type:'Biceps — Triceps — Core Finisher', exercises:[
+        {name:'EZ-Bar Curl', sets:'Giant Set: 15 — 12 — 8 reps', tip:'Full range of motion, slow on the negative.'},
+        {name:'Hammer Curl', sets:'3 sets x 12 reps', tip:'Neutral grip, both arms simultaneously.'},
+        {name:'Rope Tricep Pushdown', sets:'Giant Set: 15 — 12 — 8 reps', tip:'Flare the ends out at the bottom for full contraction.'},
+        {name:'Skull Crushers', sets:'3 sets x 10 reps', tip:'EZ-bar, elbows completely fixed overhead.'},
+        {name:'Hanging Leg Raise', sets:'4 x 15 reps', tip:'Abs initiate the movement, slow on the way down.'},
+        {name:'Cable Crunch', sets:'3 x 20 reps', tip:'Round your back into the crunch, slow on the return.'}
+      ]},
+      {day:'Sat', name:'Cardio — Active Recovery', type:'Low intensity steady state', exercises:[
+        {name:'Low-Intensity Cardio', sets:'30 to 45 minutes', tip:'Walk, bike, or swim at a very easy pace.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery Day', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'The muscle grows on rest days. Prioritize sleep and food.'}
+      ]}
+    ]
+  },
+  {
+    name:'P90X Inspired', goal:'Athletic', difficulty:'Expert', duration:'90 Days', days:'6 Days/Week', gender:'any',
+    about:'A muscle-confusion style 90-day program rotating resistance, plyometrics, yoga, and cardio. Builds total-body athletic performance and conditioning.',
+    equipment:['Pull-Up Bar','Dumbbells','Yoga Mat','Floor Space'],
+    schedule:[
+      {day:'Mon', name:'Resistance — Chest and Back', type:'Pull-Ups — Push-Ups — Weights', exercises:[
+        {name:'Wide Push-Up', sets:'3 sets x 15 reps', tip:'Hands wide, get your chest all the way to the floor.'},
+        {name:'Wide-Grip Pull-Up', sets:'3 sets x 10 reps', tip:'Full hang at the start, chin clearly over the bar.'},
+        {name:'Military Push-Up', sets:'3 sets x 12 reps', tip:'Elbows tight to torso, this hits the triceps hard.'},
+        {name:'Reverse Grip Pull-Up', sets:'3 sets x 8 reps', tip:'Palms face toward you, bicep-dominant pull.'},
+        {name:'DB Chest Fly', sets:'3 sets x 12 reps', tip:'Wide arc, get a deep stretch at the bottom.'},
+        {name:'Towel Pull-Up', sets:'3 x 6 reps', tip:'Drape a towel over a bar and grip it. Serious grip builder.'}
+      ]},
+      {day:'Tue', name:'Plyometrics', type:'Jump Training — Explosive Power', exercises:[
+        {name:'Jump Squat', sets:'3 x 15 reps', tip:'Land soft with bent knees, explode immediately back up.'},
+        {name:'Run-Stance Squat', sets:'3 x 30 reps', tip:'Narrow feet, fast pace, keep it explosive.'},
+        {name:'Airborne Heisman', sets:'3 x 30 seconds', tip:'Lateral hops, drive the knee up, hold balance on landing.'},
+        {name:'Butt Kick', sets:'3 x 30 seconds', tip:'Heels to glutes as fast as possible, pump the arms.'},
+        {name:'Jumping Lunge', sets:'3 x 15 reps each side', tip:'Alternate legs in the air, land soft every time.'}
+      ]},
+      {day:'Wed', name:'Shoulders and Arms', type:'Resistance plus Abs', exercises:[
+        {name:'Alternating DB Press', sets:'3 sets x 12 reps each side', tip:'Full overhead extension, alternate arms each rep.'},
+        {name:'In-Out Bicep Curl', sets:'3 sets x 15 reps', tip:'Wide grip then narrow grip, complete the full range.'},
+        {name:'Tricep Kickback', sets:'3 sets x 15 reps', tip:'Hinge forward, keep upper arm at hip level throughout.'},
+        {name:'Upright Row', sets:'3 sets x 12 reps', tip:'Pull to chin height, elbows flare high and wide.'},
+        {name:'Plank to Push-Up', sets:'3 x 10 reps', tip:'From plank position to push-up position and back. Control it.'}
+      ]},
+      {day:'Thu', name:'Yoga X', type:'Flexibility — Balance — Recovery', exercises:[
+        {name:'Sun Salutation', sets:'5 complete rounds', tip:'Slow and deliberate, match every movement to your breath.'},
+        {name:'Warrior I and Warrior II', sets:'60 seconds each side', tip:'Deep lunge position, keep arms strong and level.'},
+        {name:'Downward Dog', sets:'5 x 30 seconds', tip:'Press heels toward floor, lengthen through the entire spine.'},
+        {name:'Pigeon Pose', sets:'90 seconds each side', tip:'The biggest hip opener. Breathe through any discomfort.'}
+      ]},
+      {day:'Fri', name:'Legs and Back', type:'Resistance plus Pull-Ups', exercises:[
+        {name:'Balance Lunge', sets:'3 x 15 reps each side', tip:'Rear foot elevated, drive deep into the split squat.'},
+        {name:'DB Deadlift into Squat', sets:'3 sets x 12 reps', tip:'Hinge for the deadlift, then squat on the way back up.'},
+        {name:'Wide-Grip Pull-Up', sets:'4 x 8 reps', tip:'Wide grip, try to pull your chest to the bar.'},
+        {name:'Reverse Grip Pull-Up', sets:'3 x 8 reps', tip:'Close supinated grip for maximum bicep involvement.'},
+        {name:'Superman', sets:'3 x 15 reps', tip:'Lift arms and legs simultaneously, hold for 1 second at top.'}
+      ]},
+      {day:'Sat', name:'Kenpo Cardio', type:'Martial arts cardio — HIIT', exercises:[
+        {name:'Jab and Cross Combo', sets:'3 x 1 minute rounds', tip:'Rotate your hips fully with every single punch.'},
+        {name:'Front and Side Kick', sets:'3 x 15 reps each side', tip:'Chamber the knee first, then extend, then retract.'},
+        {name:'Back Kick', sets:'3 x 15 reps each side', tip:'Push the heel straight back, hinge your torso forward.'},
+        {name:'Jump Rope or Shadow Box', sets:'3 x 2 minute rounds', tip:'Keep moving constantly, stay light on your feet.'}
+      ]},
+      {day:'Sun', name:'Rest or X Stretch', type:'Recovery or stretch session', exercises:[
+        {name:'Full Rest or Gentle Stretch', sets:'Optional 30 minutes', tip:'A gentle stretch session if you choose. Otherwise sleep in — you earned it.'}
+      ]}
+    ]
+  },
+  {
+    name:'Power Athlete', goal:'Muscle', difficulty:'Expert', duration:'16 Weeks', days:'4 Days/Week', gender:'male',
+    about:'Built for those who want to move serious weight. Conjugate-style programming with max effort and dynamic effort days. You will squat, bench, and deadlift your way to a new you. This is not cardio — this is war.',
+    equipment:['Barbell','Squat Rack','Bench','Dumbbells','Cables','Pull-Up Bar'],
+    schedule:[
+      {day:'Mon', name:'Max Effort Lower', type:'Squat · Posterior Chain · Core', exercises:[
+        {name:'Squat to 1RM', sets:'Work up to heaviest single', tip:'Warm up methodically. Today you find your ceiling — then break it.'},
+        {name:'Pause Squat', sets:'3 sets x 3 reps', tip:'Two-second pause at the bottom. Stay tight. Explode up.'},
+        {name:'Good Morning', sets:'3 sets x 8 reps', tip:'Hinge hard, keep the bar locked on your traps, feel those hamstrings.'},
+        {name:'Leg Press', sets:'3 sets x 12 reps', tip:'Stack the plates. Drive through the heels. No half reps.'},
+        {name:'Leg Curl', sets:'3 sets x 12 reps', tip:'Squeeze hard at the top. Slow eccentric every rep.'},
+        {name:'Ab Wheel', sets:'3 sets x 10 reps', tip:'Brace like you are about to take a punch. Do not let the hips sag.'}
+      ]},
+      {day:'Tue', name:'Max Effort Upper', type:'Bench · Back · Arms', exercises:[
+        {name:'Bench to 1RM', sets:'Work up to heaviest single', tip:'Tight back, feet planted, drive through the floor. Own the bar.'},
+        {name:'Floor Press', sets:'3 sets x 5 reps', tip:'Pause on the floor. No leg drive. Pure pressing power.'},
+        {name:'DB Row', sets:'4 sets x 10 reps', tip:'Drive the elbow to your hip. Squeeze the lat at the top.'},
+        {name:'Face Pull', sets:'4 sets x 15 reps', tip:'High elbows, external rotation. Bulletproof your shoulders.'},
+        {name:'Tricep Pushdown', sets:'3 sets x 15 reps', tip:'Lock the elbows. Full extension. Burn it out.'},
+        {name:'Barbell Curl', sets:'3 sets x 10 reps', tip:'Strict reps only. No swinging. Build real arm strength.'}
+      ]},
+      {day:'Thu', name:'Dynamic Effort Lower', type:'Speed · Power · Core', exercises:[
+        {name:'Box Squat', sets:'8 sets x 2 reps at 60% (explosive)', tip:'45 seconds rest. Sit back hard, explode off the box like a missile.'},
+        {name:'Deadlift', sets:'6 sets x 1 rep at 70% (max speed)', tip:'Pull the slack out, then rip the bar off the floor as fast as possible.'},
+        {name:'Romanian Deadlift', sets:'3 sets x 8 reps', tip:'Hinge, do not squat. Bar grazes the legs all the way down.'},
+        {name:'Glute Ham Raise', sets:'3 sets x 10 reps', tip:'Control the descent. Drive yourself back up with the hamstrings.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Stay tight as a board. Hips level. Breathe through it.'}
+      ]},
+      {day:'Fri', name:'Dynamic Effort Upper', type:'Speed Press · Pull · Shoulders', exercises:[
+        {name:'Speed Bench', sets:'8 sets x 3 reps at 50% (explosive)', tip:'45 seconds rest. Move the bar like it is empty. Speed is strength.'},
+        {name:'Pull-Up', sets:'5 sets x 5 reps', tip:'Dead hang, chin over the bar. Add weight if bodyweight is easy.'},
+        {name:'DB Shoulder Press', sets:'4 sets x 10 reps', tip:'Press straight up. Lock out hard. Control the negative.'},
+        {name:'Lateral Raise', sets:'3 sets x 15 reps', tip:'Lead with the elbows. Pinky slightly higher than thumb.'},
+        {name:'Dips', sets:'3 sets x 12 reps', tip:'Full depth. Lock out at the top. Add weight when easy.'},
+        {name:'Hammer Curl', sets:'3 sets x 12 reps', tip:'Neutral grip. Build the brachialis. Thick arms inbound.'}
+      ]}
+    ]
+  },
+  {
+    name:'Shred Season', goal:'Fat Loss', difficulty:'Intermediate', duration:'8 Weeks', days:'5 Days/Week', gender:'any',
+    about:'Strip the fat, keep the muscle. High-intensity circuits paired with strategic cardio will have you burning calories long after you leave the gym. Prepare to sweat.',
+    equipment:['Dumbbells','Pull-Up Bar','Jump Rope','Battle Rope','Treadmill','Bike'],
+    schedule:[
+      {day:'Mon', name:'Upper Circuit', type:'Push · Pull · Burn', exercises:[
+        {name:'Push-Up', sets:'4 sets x 15 reps', tip:'Chest to the floor every rep. No half reps when fat is on the line.'},
+        {name:'DB Row', sets:'4 sets x 12 reps', tip:'Heavy dumbbell. Drive elbow back. Crush the lats.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 12 reps', tip:'Strict press. Stack the bones overhead at lockout.'},
+        {name:'Tricep Dip', sets:'3 sets x 15 reps', tip:'Upright torso. Full lockout. Triceps screaming yet?'},
+        {name:'Bicep Curl', sets:'3 sets x 12 reps', tip:'Slow on the way down. Build the peak.'},
+        {name:'Battle Rope', sets:'3 x 30 seconds', tip:'All-out effort. Slam the ropes like you mean it.'}
+      ]},
+      {day:'Tue', name:'Lower Circuit', type:'Quads · Glutes · Explode', exercises:[
+        {name:'Jump Squat', sets:'4 sets x 15 reps', tip:'Explode up. Land soft. Reset and repeat.'},
+        {name:'Reverse Lunge', sets:'4 sets x 12 reps', tip:'Long step back. Drive through the front heel.'},
+        {name:'Glute Bridge', sets:'4 sets x 20 reps', tip:'Squeeze the glutes hard at the top. Pause one second.'},
+        {name:'Calf Raise', sets:'4 sets x 20 reps', tip:'Full stretch at the bottom. Pause at the top.'},
+        {name:'Box Jump', sets:'3 sets x 10 reps', tip:'Step down — never jump down. Save the knees.'},
+        {name:'Wall Sit', sets:'3 x 45 seconds', tip:'Thighs parallel. Burn through it. No leaning on your hands.'}
+      ]},
+      {day:'Wed', name:'HIIT Cardio', type:'High Intensity Intervals', exercises:[
+        {name:'Burpee', sets:'5 sets x 10 reps', tip:'Chest to the floor, full jump. No half measures.'},
+        {name:'Mountain Climber', sets:'5 x 30 seconds', tip:'Drive the knees fast. Keep the hips low.'},
+        {name:'Jump Rope', sets:'5 x 1 minute', tip:'Light on the feet. Wrist rotation, not arm swing.'},
+        {name:'Sprint Intervals', sets:'5 x 20 seconds', tip:'All-out effort. Treadmill, bike, or open ground. Empty the tank.'},
+        {name:'Rest', sets:'40 seconds between rounds', tip:'Catch your breath. You will need it for the next round.'}
+      ]},
+      {day:'Thu', name:'Full Body Burn', type:'Compound Lifts · Cardio Mix', exercises:[
+        {name:'Deadlift', sets:'4 sets x 8 reps', tip:'Bar over mid-foot. Big air. Pull hard.'},
+        {name:'Push-Up', sets:'3 sets x 15 reps', tip:'Tight core. Full range. Earn every rep.'},
+        {name:'Pull-Up', sets:'3 sets x 8 reps', tip:'Use a band if needed. Get your chin over the bar.'},
+        {name:'DB Lunge', sets:'3 sets x 12 reps', tip:'Step long. Knee tracks over the toe.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Hold tight. Glutes squeezed. Do not break.'},
+        {name:'Jumping Jack', sets:'3 x 30 seconds', tip:'Keep the pace up. Heart rate climbing.'}
+      ]},
+      {day:'Fri', name:'Cardio Finisher', type:'Treadmill · Bike · Stretch', exercises:[
+        {name:'Treadmill HIIT', sets:'20 minutes', tip:'30 seconds sprint, 60 seconds walk. Stay disciplined.'},
+        {name:'Bike Intervals', sets:'15 minutes', tip:'Alternate hard 1 minute, easy 1 minute. Push the watts.'},
+        {name:'Stretching', sets:'10 minutes', tip:'Hit the hips, hamstrings, and shoulders. Cool down properly.'}
+      ]},
+      {day:'Sat', name:'Active Recovery', type:'Walk · Yoga · Reset', exercises:[
+        {name:'Light Walk', sets:'30 minutes', tip:'Conversational pace. Get sun. Move blood.'},
+        {name:'Yoga Flow', sets:'20 minutes', tip:'Breathe deep. Stretch the body. Reset for the week ahead.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'You worked hard. Now sleep, eat, and let the body adapt.'}
+      ]}
+    ]
+  },
+  {
+    name:'Calisthenics Elite', goal:'Athletic', difficulty:'Expert', duration:'12 Weeks', days:'5 Days/Week', gender:'any',
+    about:'Master your own bodyweight. From muscle-ups to handstands, this program builds the kind of functional strength that turns heads. No machines. No excuses.',
+    equipment:['Pull-Up Bar','Parallel Bars','Rings','Floor Space'],
+    schedule:[
+      {day:'Mon', name:'Push Skills', type:'Handstand · Dip · Lever', exercises:[
+        {name:'Handstand Push-Up practice', sets:'4 sets x 5 reps', tip:'Use a wall for support. Full range. Crown to the floor.'},
+        {name:'Pike Push-Up', sets:'3 sets x 10 reps', tip:'Hips high. Drive the head between your hands.'},
+        {name:'Archer Push-Up', sets:'3 sets x 8 reps each side', tip:'Shift weight to one arm. Other arm stays extended. Control it.'},
+        {name:'Dip', sets:'4 sets x 12 reps', tip:'Full depth — shoulders below elbows. Lock out at the top.'},
+        {name:'Ring Push-Up', sets:'3 sets x 10 reps', tip:'Stabilize hard. Slow tempo. Master the wobble.'},
+        {name:'L-sit Hold', sets:'3 x 20 seconds', tip:'Legs straight, toes pointed, locked elbows. Pure core.'}
+      ]},
+      {day:'Tue', name:'Pull Skills', type:'Muscle-Up · Pull-Up · Core', exercises:[
+        {name:'Muscle-Up practice', sets:'4 sets x 3 reps', tip:'Explosive pull, fast transition. Keep the bar close.'},
+        {name:'Pull-Up', sets:'5 sets x 8 reps', tip:'Dead hang start. Chest to the bar. Strict form only.'},
+        {name:'Typewriter Pull-Up', sets:'3 sets x 5 reps each side', tip:'Pull up, shift side to side at the top. Brutal lat work.'},
+        {name:'Commando Pull-Up', sets:'3 sets x 8 reps', tip:'Mixed grip over the bar. Alternate sides each rep.'},
+        {name:'Hanging Leg Raise', sets:'4 sets x 12 reps', tip:'Toes to the bar if you can. Control the swing.'}
+      ]},
+      {day:'Wed', name:'Legs and Core', type:'Pistol · Dragon Flag · Hold', exercises:[
+        {name:'Pistol Squat', sets:'4 sets x 5 reps each side', tip:'Full depth. Free leg straight. No bouncing out of the hole.'},
+        {name:'Jump Squat', sets:'3 sets x 15 reps', tip:'Explode up. Land soft. Stay athletic.'},
+        {name:'Nordic Curl', sets:'3 sets x 6 reps', tip:'Lower slowly. Catch yourself. Hamstrings on fire.'},
+        {name:'Dragon Flag', sets:'3 sets x 5 reps', tip:'Body straight as a board. Lower slow. Iron core builder.'},
+        {name:'Ab Wheel', sets:'3 sets x 10 reps', tip:'Brace hard. Roll out, roll back. Hips locked.'},
+        {name:'Hollow Body Hold', sets:'3 x 30 seconds', tip:'Lower back glued to the floor. Arms and legs off.'}
+      ]},
+      {day:'Thu', name:'Skill Day', type:'Levers · Planche · Flag', exercises:[
+        {name:'Front Lever progression', sets:'5 x 10 seconds', tip:'Tuck, advanced tuck, straddle, full. Progress as ready.'},
+        {name:'Back Lever progression', sets:'5 x 10 seconds', tip:'Inverted hang to tuck back lever. Build the shoulder strength.'},
+        {name:'Planche progression', sets:'5 x 10 seconds', tip:'Lean forward, support on straight arms. Tuck planche first.'},
+        {name:'Human Flag practice', sets:'3 x 5 seconds each side', tip:'Vertical pole. Grip strong. Press top arm, pull bottom arm.'}
+      ]},
+      {day:'Fri', name:'Full Body Flow', type:'Conditioning · Power · Sprint', exercises:[
+        {name:'Burpee Pull-Up', sets:'4 sets x 8 reps', tip:'Burpee, jump up, grab the bar, full pull-up. Repeat.'},
+        {name:'Jump Squat to Push-Up', sets:'3 sets x 10 reps', tip:'Jump squat, drop to push-up, explode back up. Full body.'},
+        {name:'Mountain Climber', sets:'3 x 30 seconds', tip:'Fast feet. Tight core. Keep the hips low.'},
+        {name:'Tuck Jump', sets:'3 sets x 12 reps', tip:'Knees to chest at the top. Land soft and re-explode.'},
+        {name:'V-Up', sets:'3 sets x 15 reps', tip:'Fingers to toes. Squeeze the abs at the top.'},
+        {name:'Sprint', sets:'5 x 20 seconds', tip:'All-out. Track, treadmill, or hill. Empty the tank.'}
+      ]}
+    ]
+  },
+  {
+    name:'Beginner Strength', goal:'Muscle', difficulty:'Beginner', duration:'12 Weeks', days:'3 Days/Week', gender:'any',
+    about:'Your first step to getting strong. Simple, proven, and effective. Three full-body sessions per week built around the movements that matter. By week 12 you will not recognize yourself.',
+    equipment:['Dumbbells','Bench','Lat Pulldown','Resistance Band','Ab Wheel'],
+    schedule:[
+      {day:'Mon', name:'Full Body A', type:'Squat · Push · Pull · Core', exercises:[
+        {name:'Goblet Squat', sets:'3 sets x 10 reps', tip:'Hold the dumbbell at your chest. Squat between the heels.'},
+        {name:'Push-Up', sets:'3 sets x 10 reps', tip:'Chest to the floor. Straight line from head to heels.'},
+        {name:'DB Row', sets:'3 sets x 10 reps each side', tip:'Flat back. Drive the elbow to your hip. Feel the lat.'},
+        {name:'Glute Bridge', sets:'3 sets x 15 reps', tip:'Drive through heels. Squeeze the glutes hard at the top.'},
+        {name:'Plank', sets:'3 x 30 seconds', tip:'Tight body, level hips. Breathe through it.'},
+        {name:'Dead Bug', sets:'3 sets x 8 reps each side', tip:'Lower back stays glued to the floor. Slow and controlled.'}
+      ]},
+      {day:'Wed', name:'Full Body B', type:'Hinge · Press · Pull · Core', exercises:[
+        {name:'Romanian Deadlift', sets:'3 sets x 10 reps', tip:'Soft knees. Hinge from the hips. Bar close to your legs.'},
+        {name:'Incline Push-Up', sets:'3 sets x 12 reps', tip:'Hands on a bench or counter. Same form as a regular push-up.'},
+        {name:'Band Pull-Apart', sets:'3 sets x 15 reps', tip:'Arms straight. Squeeze the shoulder blades together.'},
+        {name:'Reverse Lunge', sets:'3 sets x 10 reps each side', tip:'Step back, drop the knee, drive back up.'},
+        {name:'Side Plank', sets:'3 x 20 seconds each side', tip:'Hips up. Body in a straight line. Hold steady.'},
+        {name:'Bird Dog', sets:'3 sets x 8 reps each side', tip:'Opposite arm and leg. Slow, controlled, no wobble.'}
+      ]},
+      {day:'Fri', name:'Full Body C', type:'Compound Build', exercises:[
+        {name:'DB Squat', sets:'3 sets x 12 reps', tip:'Dumbbells at your sides. Squat to depth. Stay tall.'},
+        {name:'DB Bench Press', sets:'3 sets x 10 reps', tip:'Lower to chest level. Press straight up. Control it.'},
+        {name:'Lat Pulldown', sets:'3 sets x 10 reps', tip:'Wide grip. Pull to upper chest. Squeeze the lats.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 10 reps', tip:'Seated or standing. Press straight overhead. Lock out.'},
+        {name:'Calf Raise', sets:'3 sets x 20 reps', tip:'Full stretch at the bottom. Pause at the top of every rep.'},
+        {name:'Ab Wheel', sets:'3 sets x 8 reps', tip:'Start from your knees. Roll out slow. Brace hard.'}
+      ]}
+    ]
+  },
+  {
+    name:'Warrior Conditioning', goal:'Athletic', difficulty:'Intermediate', duration:'10 Weeks', days:'4 Days/Week', gender:'male',
+    about:'Train like a fighter without stepping in a ring. Combines strength work with explosive conditioning to build an athletic body — powerful, lean, and built to last.',
+    equipment:['Barbell','Dumbbells','Pull-Up Bar','Battle Rope','Jump Rope','Sled or Open Space'],
+    schedule:[
+      {day:'Mon', name:'Strength', type:'Heavy Compounds · Carry', exercises:[
+        {name:'Deadlift', sets:'4 sets x 5 reps', tip:'Bar over mid-foot. Big air. Pull with intent.'},
+        {name:'Pull-Up', sets:'4 sets x 8 reps', tip:'Strict reps. Chin clears the bar. Add weight when easy.'},
+        {name:'DB Bench', sets:'4 sets x 10 reps', tip:'Full range. Control the descent. Drive through the chest.'},
+        {name:'Farmer Carry', sets:'3 x 30 meters', tip:'Heavy weight. Tall posture. Grip like a vise.'},
+        {name:'Turkish Get-Up', sets:'3 sets x 3 reps each side', tip:'Slow and deliberate. Master the movement, then add weight.'}
+      ]},
+      {day:'Tue', name:'Conditioning', type:'Explosive · Cardio · Burn', exercises:[
+        {name:'Box Jump', sets:'5 sets x 5 reps', tip:'Explode up. Land soft. Step down — never jump down.'},
+        {name:'Battle Rope', sets:'5 x 30 seconds', tip:'Slam the ropes. Stay low. All-out effort.'},
+        {name:'Sled Push', sets:'5 x 20 meters (or sprint)', tip:'Drive low and hard. If no sled, sprint instead.'},
+        {name:'Burpee', sets:'3 sets x 10 reps', tip:'Chest to the floor. Full jump at the top. No slacking.'},
+        {name:'Jump Rope', sets:'3 x 2 minutes', tip:'Light feet. Find a rhythm. Push the pace.'}
+      ]},
+      {day:'Thu', name:'Strength', type:'Front Squat · Pull · Core', exercises:[
+        {name:'Front Squat', sets:'4 sets x 5 reps', tip:'Elbows high. Tall chest. Drive up through the heels.'},
+        {name:'Dip', sets:'4 sets x 10 reps', tip:'Full depth. Lock out at the top. Add weight if easy.'},
+        {name:'DB Row', sets:'4 sets x 10 reps each side', tip:'Drive the elbow back. Squeeze the lat hard.'},
+        {name:'Single Leg RDL', sets:'3 sets x 8 reps each side', tip:'Hinge from the hip. Free leg straight back. Hamstring stretch.'},
+        {name:'Ab Wheel', sets:'3 sets x 10 reps', tip:'Brace the core. Roll out and back. No sagging hips.'}
+      ]},
+      {day:'Fri', name:'Conditioning', type:'AMRAP Challenge', exercises:[
+        {name:'AMRAP 20 minutes', sets:'5 Pull-Ups, 10 Push-Ups, 15 Air Squats', tip:'As many rounds as possible. Rest as needed.'},
+        {name:'Push your round count', sets:'Every week', tip:'Beat last week. That is how progress is made.'}
+      ]}
+    ]
+  },
+  {
+    name:'Lean Machine', goal:'Lean', difficulty:'Intermediate', duration:'10 Weeks', days:'5 Days/Week', gender:'female',
+    about:'Get toned without the bulk. Moderate weights, higher reps, and strategic cardio sculpt the body you actually want. This is the program people notice.',
+    equipment:['Dumbbells','Cables','Bench','Leg Machines','Cardio Machine'],
+    schedule:[
+      {day:'Mon', name:'Upper Tone', type:'Higher Reps · Sculpt', exercises:[
+        {name:'DB Bench', sets:'4 sets x 15 reps', tip:'Moderate weight. Full range. Squeeze the chest at the top.'},
+        {name:'Cable Row', sets:'4 sets x 15 reps', tip:'Tall posture. Pull to the belly. Squeeze the back.'},
+        {name:'Lateral Raise', sets:'3 sets x 20 reps', tip:'Lead with the elbows. Light weight, strict form.'},
+        {name:'Tricep Pushdown', sets:'3 sets x 20 reps', tip:'Lock the elbows. Full extension. Feel the burn.'},
+        {name:'Bicep Curl', sets:'3 sets x 15 reps', tip:'Strict reps. Slow eccentric. Build the peak.'},
+        {name:'Face Pull', sets:'3 sets x 20 reps', tip:'High elbows. External rotation. Posture booster.'}
+      ]},
+      {day:'Tue', name:'Lower Tone', type:'Quads · Glutes · Calves', exercises:[
+        {name:'Leg Press', sets:'4 sets x 15 reps', tip:'Full range. Slow tempo. Pump the legs full of blood.'},
+        {name:'Leg Curl', sets:'4 sets x 15 reps', tip:'Squeeze the hamstrings hard at the top of every rep.'},
+        {name:'Leg Extension', sets:'4 sets x 15 reps', tip:'Pause one second at the top. Slow on the way down.'},
+        {name:'Calf Raise', sets:'4 sets x 25 reps', tip:'Full stretch at the bottom. Pause at the top. No bouncing.'},
+        {name:'Glute Kickback', sets:'3 sets x 20 reps each side', tip:'Squeeze the glute hard. Keep the core tight.'},
+        {name:'Step-Up', sets:'3 sets x 15 reps each side', tip:'Drive through the heel. Full hip extension at the top.'}
+      ]},
+      {day:'Wed', name:'Cardio', type:'Steady State · Core', exercises:[
+        {name:'Steady State Cardio', sets:'35 minutes', tip:'Bike, jog, or elliptical. Stay in the fat-burning zone.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Hold tight. Glutes squeezed. Hips level.'},
+        {name:'Russian Twist', sets:'3 sets x 20 reps', tip:'Heels off the floor. Rotate side to side fully.'},
+        {name:'Bicycle Crunch', sets:'3 sets x 20 reps', tip:'Opposite elbow to knee. Slow and controlled.'}
+      ]},
+      {day:'Thu', name:'Full Body Sculpt', type:'Compound Tone', exercises:[
+        {name:'Deadlift', sets:'3 sets x 12 reps', tip:'Moderate weight, perfect form. Bar close to the body.'},
+        {name:'Pull-Up or Lat Pulldown', sets:'3 sets x 12 reps', tip:'Full stretch at the top. Pull to upper chest.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 15 reps', tip:'Press overhead. Lock out hard. Control the negative.'},
+        {name:'Goblet Squat', sets:'3 sets x 15 reps', tip:'Hold the dumbbell at your chest. Squat to depth.'},
+        {name:'Push-Up', sets:'3 sets x 15 reps', tip:'Chest to the floor. Tight core all the way through.'},
+        {name:'Mountain Climber', sets:'3 x 30 seconds', tip:'Drive the knees fast. Keep the hips low.'}
+      ]},
+      {day:'Fri', name:'HIIT and Core', type:'Interval · Sculpt Core', exercises:[
+        {name:'HIIT Cardio', sets:'20 minutes', tip:'30 seconds hard, 30 seconds easy. Repeat 20 rounds.'},
+        {name:'Hanging Leg Raise', sets:'3 sets x 15 reps', tip:'Abs do the work. Control the swing.'},
+        {name:'Ab Wheel', sets:'3 sets x 10 reps', tip:'Roll out slow. Roll back with the abs. Brace hard.'},
+        {name:'Side Plank', sets:'3 x 30 seconds each side', tip:'Hips up. Body straight. Hold steady.'},
+        {name:'Bicycle Crunch', sets:'3 sets x 20 reps', tip:'Opposite elbow to knee. Slow tempo. Squeeze every rep.'}
+      ]},
+      {day:'Sat', name:'Active Recovery', type:'Walk · Stretch', exercises:[
+        {name:'Walk', sets:'30 minutes', tip:'Conversational pace. Get outside. Move blood.'},
+        {name:'Stretch', sets:'15 minutes', tip:'Hit the hips, hamstrings, and shoulders. Cool down properly.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'Sleep 8 hours. Eat clean. Let the body adapt.'}
+      ]}
+    ]
+  },
+  {
+    name:'Glute & Curve Builder', goal:'Lean', difficulty:'Intermediate', duration:'10 Weeks', days:'4 Days/Week', gender:'female',
+    emoji:'🍑', banner:'linear-gradient(135deg,#1a0020,#200010)',
+    about:'Sculpt the curves you want. This program targets glutes, hamstrings, and core with progressive overload and strategic volume. Every session is designed to build shape where it counts most.',
+    equipment:['Dumbbells','Barbell','Hip Thrust Pad','Resistance Bands','Cable Machine'],
+    schedule:[
+      {day:'Mon', name:'Glute Focus A', type:'Hips · Hamstrings · Glutes', exercises:[
+        {name:'Hip Thrust', sets:'5 sets x 10 reps', tip:'Use the heaviest weight you can handle with perfect form. Drive through the heels.'},
+        {name:'Romanian Deadlift', sets:'4 sets x 10 reps', tip:'Hinge from the hips. Bar close to your legs. Feel the hamstring stretch.'},
+        {name:'Cable Kickback', sets:'3 sets x 15 reps each side', tip:'Squeeze the glute hard at the top of every rep.'},
+        {name:'Sumo Squat', sets:'4 sets x 12 reps', tip:'Wide stance, toes pointed out. Go to depth.'},
+        {name:'Glute Bridge Hold', sets:'3 x 30 seconds', tip:'Squeeze the glutes hard the entire hold. Do not let hips drop.'},
+        {name:'Clamshell with Band', sets:'3 sets x 20 reps each side', tip:'Lying on your side, knees bent, open the top knee against the band.'}
+      ]},
+      {day:'Tue', name:'Upper Tone', type:'Push · Pull · Sculpt', exercises:[
+        {name:'DB Bench Press', sets:'3 sets x 12 reps', tip:'Moderate weight. Full range. Control the descent.'},
+        {name:'Cable Row', sets:'3 sets x 15 reps', tip:'Tall posture. Pull to the belly. Squeeze the back.'},
+        {name:'Lateral Raise', sets:'3 sets x 15 reps', tip:'Lead with the elbows. Light weight, strict form.'},
+        {name:'Tricep Pushdown', sets:'3 sets x 15 reps', tip:'Lock the elbows. Full extension every rep.'},
+        {name:'Bicep Curl', sets:'3 sets x 12 reps', tip:'Strict reps. Slow eccentric. Build the peak.'},
+        {name:'Face Pull', sets:'3 sets x 15 reps', tip:'High elbows. External rotation. Posture booster.'}
+      ]},
+      {day:'Thu', name:'Glute Focus B', type:'Legs · Glutes · Stability', exercises:[
+        {name:'Bulgarian Split Squat', sets:'4 sets x 10 reps each side', tip:'Rear foot elevated. Deep knee bend on the front leg.'},
+        {name:'Leg Press (feet high)', sets:'4 sets x 12 reps', tip:'Feet high on the platform to emphasize glutes and hamstrings.'},
+        {name:'Leg Curl', sets:'4 sets x 12 reps', tip:'Squeeze the hamstrings hard at the top of every rep.'},
+        {name:'Step-Up with DB', sets:'3 sets x 12 reps each side', tip:'Drive through the heel. Full hip extension at the top.'},
+        {name:'Abductor Machine', sets:'3 sets x 20 reps', tip:'Lean slightly forward to target the upper glutes more.'},
+        {name:'Band Walk', sets:'3 x 20 steps each direction', tip:'Band above the knees. Stay low. Small controlled steps.'}
+      ]},
+      {day:'Fri', name:'Full Body Sculpt', type:'Compound · Tone', exercises:[
+        {name:'Deadlift', sets:'3 sets x 8 reps', tip:'Bar over mid-foot. Hinge hard. Drive the floor away.'},
+        {name:'Pull-Up or Lat Pulldown', sets:'3 sets x 10 reps', tip:'Wide grip. Pull to the upper chest. Squeeze the lats.'},
+        {name:'Goblet Squat', sets:'3 sets x 15 reps', tip:'Hold the dumbbell at the chest. Squat to depth.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 12 reps', tip:'Press overhead. Lock out. Control the negative.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Tight body. Hips level. Breathe steady.'},
+        {name:'Russian Twist', sets:'3 sets x 20 reps', tip:'Heels off the floor. Rotate side to side fully.'}
+      ]}
+    ]
+  },
+  {
+    name:'Tone and Tighten', goal:'Lean', difficulty:'Beginner', duration:'8 Weeks', days:'3 Days/Week', gender:'female',
+    emoji:'✨', banner:'linear-gradient(135deg,#1a0015,#000f1a)',
+    about:'Your starting point for a stronger, leaner body. Three full-body sessions per week using light to moderate weights and bodyweight movements. Build the habit. Build the body.',
+    equipment:['Light Dumbbells','Resistance Bands','Yoga Mat'],
+    schedule:[
+      {day:'Mon', name:'Full Body A', type:'Foundation · Strength', exercises:[
+        {name:'Bodyweight Squat', sets:'3 sets x 15 reps', tip:'Sit back into the heels. Keep your chest tall.'},
+        {name:'Knee Push-Up', sets:'3 sets x 10 reps', tip:'Straight line from knees to shoulders. Full range of motion.'},
+        {name:'DB Row', sets:'3 sets x 12 reps each side', tip:'Flat back. Drive the elbow to the hip.'},
+        {name:'Glute Bridge', sets:'3 sets x 20 reps', tip:'Drive through the heels. Squeeze the glutes hard at the top.'},
+        {name:'Plank', sets:'3 x 30 seconds', tip:'Tight body. Hips level. Breathe steady.'},
+        {name:'Bicycle Crunch', sets:'3 sets x 15 reps', tip:'Opposite elbow to knee. Slow and controlled.'}
+      ]},
+      {day:'Wed', name:'Full Body B', type:'Mobility · Stability', exercises:[
+        {name:'Reverse Lunge', sets:'3 sets x 10 reps each side', tip:'Step back. Drop the knee. Drive back up.'},
+        {name:'Incline Push-Up', sets:'3 sets x 12 reps', tip:'Hands on a bench or counter. Same form as a regular push-up.'},
+        {name:'Band Pull-Apart', sets:'3 sets x 15 reps', tip:'Arms straight. Squeeze the shoulder blades together.'},
+        {name:'Single Leg Glute Bridge', sets:'3 sets x 12 reps each side', tip:'One leg lifted. Drive through the planted heel.'},
+        {name:'Side Plank', sets:'3 x 20 seconds each side', tip:'Hips up. Body in a straight line. Hold steady.'},
+        {name:'Dead Bug', sets:'3 sets x 8 reps each side', tip:'Lower back glued to the floor. Slow and controlled.'}
+      ]},
+      {day:'Fri', name:'Full Body C', type:'Endurance · Tone', exercises:[
+        {name:'Sumo Squat with DB', sets:'3 sets x 15 reps', tip:'Wide stance, toes out. Hold the dumbbell at the chest.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 12 reps', tip:'Press overhead. Lock out. Control the negative.'},
+        {name:'Lat Pulldown or Band Row', sets:'3 sets x 12 reps', tip:'Wide grip. Pull to upper chest. Squeeze the lats.'},
+        {name:'Step-Up', sets:'3 sets x 12 reps each side', tip:'Drive through the heel. Full hip extension at the top.'},
+        {name:'Calf Raise', sets:'3 sets x 20 reps', tip:'Full stretch at the bottom. Pause at the top.'},
+        {name:'Hollow Body Hold', sets:'3 x 20 seconds', tip:'Lower back glued to the floor. Arms and legs lifted.'}
+      ]}
+    ]
+  },
+  {
+    name:'Strong Mom Program', goal:'Athletic', difficulty:'Beginner', duration:'12 Weeks', days:'3 Days/Week', gender:'female',
+    emoji:'💪', banner:'linear-gradient(135deg,#001a10,#0f0015)',
+    about:'Built for busy women who want to feel strong, energetic, and confident. Short, efficient sessions that fit your schedule. No gym required — just a set of dumbbells and your determination.',
+    equipment:['Dumbbells','Resistance Bands','Chair or Step'],
+    schedule:[
+      {day:'Mon', name:'Strength A', type:'Push · Pull · Squat', exercises:[
+        {name:'Goblet Squat', sets:'3 sets x 12 reps', tip:'Hold the dumbbell at the chest. Squat between the heels.'},
+        {name:'Push-Up (any style)', sets:'3 sets x 10 reps', tip:'Choose the variation that lets you complete every rep with good form.'},
+        {name:'DB Row', sets:'3 sets x 10 reps each side', tip:'Flat back. Drive the elbow to the hip.'},
+        {name:'Glute Bridge', sets:'3 sets x 15 reps', tip:'Drive through the heels. Squeeze hard at the top.'},
+        {name:'Plank', sets:'3 x 30 seconds', tip:'Tight body. Level hips. Breathe through it.'},
+        {name:'March in Place', sets:'3 x 30 seconds', tip:'Drive the knees up. Pump the arms. Keep the pace up.'}
+      ]},
+      {day:'Wed', name:'Cardio and Core', type:'Movement · Mobility', exercises:[
+        {name:'Brisk Walk or March', sets:'20 minutes', tip:'Moderate pace. Move the blood. Get the heart rate up.'},
+        {name:'Dead Bug', sets:'3 sets x 8 reps each side', tip:'Lower back glued to the floor. Slow and controlled.'},
+        {name:'Side Plank', sets:'3 x 20 seconds each side', tip:'Hips up. Body in a straight line.'},
+        {name:'Bird Dog', sets:'3 sets x 8 reps each side', tip:'Opposite arm and leg. Slow, controlled, no wobble.'},
+        {name:'Calf Raise', sets:'3 sets x 20 reps', tip:'Full stretch at the bottom. Pause at the top.'},
+        {name:'Stretching', sets:'10 minutes', tip:'Hit the hips, hamstrings, and shoulders. Cool down properly.'}
+      ]},
+      {day:'Fri', name:'Strength B', type:'Lunge · Press · Hinge', exercises:[
+        {name:'Reverse Lunge', sets:'3 sets x 10 reps each side', tip:'Step back. Drop the knee. Drive up through the front heel.'},
+        {name:'DB Shoulder Press', sets:'3 sets x 10 reps', tip:'Press straight overhead. Lock out hard.'},
+        {name:'Lat Pulldown or Band Row', sets:'3 sets x 12 reps', tip:'Pull to the upper chest. Squeeze the lats.'},
+        {name:'Hip Thrust', sets:'3 sets x 15 reps', tip:'Upper back on a bench or couch. Drive through the heels.'},
+        {name:'Bicycle Crunch', sets:'3 sets x 15 reps', tip:'Opposite elbow to knee. Slow tempo.'},
+        {name:'Wall Sit', sets:'3 x 30 seconds', tip:'Thighs parallel. Back flat against the wall. Hold steady.'}
+      ]}
+    ]
+  },
+  {
+    name:'Female Fat Burner', goal:'Fat Loss', difficulty:'Intermediate', duration:'8 Weeks', days:'5 Days/Week', gender:'female',
+    emoji:'🔥', banner:'linear-gradient(135deg,#1a0a00,#001015)',
+    about:'Maximum calorie burn, zero muscle sacrifice. This program stacks resistance training with metabolic finishers to accelerate fat loss while keeping your hard-earned muscle. Results in 8 weeks guaranteed.',
+    equipment:['Dumbbells','Resistance Bands','Jump Rope','Bench'],
+    schedule:[
+      {day:'Mon', name:'Upper Metabolic', type:'Push · Pull · Burn', exercises:[
+        {name:'DB Bench', sets:'4 sets x 12 reps', tip:'Full range. Control the descent. Drive through the chest.'},
+        {name:'Cable Row', sets:'4 sets x 12 reps', tip:'Tall posture. Pull to the belly. Squeeze the back.'},
+        {name:'Lateral Raise', sets:'3 sets x 15 reps', tip:'Lead with the elbows. Light weight, strict form.'},
+        {name:'Tricep Dip', sets:'3 sets x 15 reps', tip:'Upright torso. Lock out at the top.'},
+        {name:'Bicep Curl', sets:'3 sets x 12 reps', tip:'Strict reps. Slow on the way down.'},
+        {name:'Battle Rope or Jump Rope', sets:'3 x 30 seconds', tip:'All-out effort. Empty the tank.'}
+      ]},
+      {day:'Tue', name:'Lower Metabolic', type:'Quads · Glutes · Explosive', exercises:[
+        {name:'Jump Squat', sets:'4 sets x 12 reps', tip:'Explode up. Land soft. Reset and repeat.'},
+        {name:'Romanian Deadlift', sets:'4 sets x 10 reps', tip:'Hinge from the hips. Bar close to the legs.'},
+        {name:'Glute Bridge', sets:'4 sets x 20 reps', tip:'Squeeze the glutes hard at the top. Pause one second.'},
+        {name:'Leg Curl', sets:'3 sets x 12 reps', tip:'Squeeze the hamstrings hard at the top of every rep.'},
+        {name:'Step-Up', sets:'3 sets x 12 reps each side', tip:'Drive through the heel. Full hip extension at the top.'},
+        {name:'Box Jump or Squat Jump', sets:'3 sets x 10 reps', tip:'Step down — never jump down. Save the knees.'}
+      ]},
+      {day:'Wed', name:'HIIT', type:'High Intensity Intervals', exercises:[
+        {name:'Burpee', sets:'4 sets x 10 reps', tip:'Chest to the floor. Full jump at the top.'},
+        {name:'Mountain Climber', sets:'4 x 30 seconds', tip:'Drive the knees fast. Keep the hips low.'},
+        {name:'Jump Rope', sets:'4 x 1 minute', tip:'Light on the feet. Wrist rotation, not arm swing.'},
+        {name:'High Knee', sets:'4 x 30 seconds', tip:'Drive the knees to chest height. Pump the arms.'},
+        {name:'Rest', sets:'30 seconds between rounds', tip:'Catch your breath. Then go again.'}
+      ]},
+      {day:'Thu', name:'Full Body Resistance', type:'Compound · Strength', exercises:[
+        {name:'Deadlift', sets:'3 sets x 10 reps', tip:'Bar over mid-foot. Hinge hard. Drive the floor away.'},
+        {name:'Pull-Up or Lat Pulldown', sets:'3 sets x 10 reps', tip:'Wide grip. Pull to upper chest. Squeeze the lats.'},
+        {name:'DB Squat', sets:'3 sets x 15 reps', tip:'Dumbbells at the sides. Squat to depth. Stay tall.'},
+        {name:'Push-Up', sets:'3 sets x 15 reps', tip:'Chest to the floor. Tight core all the way through.'},
+        {name:'Plank', sets:'3 x 45 seconds', tip:'Hold tight. Glutes squeezed. Hips level.'},
+        {name:'Russian Twist', sets:'3 sets x 20 reps', tip:'Heels off the floor. Rotate side to side fully.'}
+      ]},
+      {day:'Fri', name:'Cardio and Core Finisher', type:'Steady · Sculpt Core', exercises:[
+        {name:'Steady State Cardio', sets:'25 minutes', tip:'Bike, jog, or elliptical. Stay in the fat-burning zone.'},
+        {name:'Hanging Knee Raise', sets:'3 sets x 15 reps', tip:'Abs do the work. Control the swing.'},
+        {name:'Ab Wheel', sets:'3 sets x 10 reps', tip:'Roll out slow. Roll back with the abs. Brace hard.'},
+        {name:'Side Plank', sets:'3 x 30 seconds each side', tip:'Hips up. Body straight. Hold steady.'},
+        {name:'Bicycle Crunch', sets:'3 sets x 20 reps', tip:'Opposite elbow to knee. Slow tempo. Squeeze every rep.'}
+      ]},
+      {day:'Sat', name:'Active Recovery', type:'Walk · Stretch', exercises:[
+        {name:'Walk', sets:'30 minutes', tip:'Conversational pace. Get outside. Move blood.'},
+        {name:'Yoga or Stretching', sets:'20 minutes', tip:'Focus on the hips, hamstrings, and shoulders.'}
+      ]},
+      {day:'Sun', name:'EARNED REST — GROW', type:'Recovery', exercises:[
+        {name:'Complete Rest', sets:'All day', tip:'Sleep 8 hours. Eat clean. Let the body adapt.'}
+      ]}
+    ]
+  },
+  /* ===== POSTPARTUM RECOVERY & REBUILD ===== */
+  {
+    id:16,
+    name:'Postpartum Recovery & Rebuild',
+    goal:'Fat Loss',
+    difficulty:'Beginner',
+    duration:'12 Weeks',
+    days:'4 Days/Week',
+    gender:'female',
+    emoji:'🌸',
+    about:'A medically-informed 3-phase program to safely rebuild core strength, restore pelvic floor function, and return to full fitness after childbirth. Phase 1 (Weeks 1–4): Gentle breathwork & pelvic floor restoration. Phase 2 (Weeks 5–8): Light strength added. Phase 3 (Weeks 9–12): Full return to fitness.',
+    equipment:['Resistance Band','Light Dumbbells','Sturdy Step','Exercise Mat'],
+    disclaimer:'⚠️ MEDICAL DISCLAIMER: Always receive clearance from your OB-GYN or midwife before starting — typically 6 weeks after vaginal birth or 8–12 weeks after C-section. Stop if you experience pain, heaviness, leaking, or abdominal doming/coning. Consult a pelvic floor physiotherapist.',
+    schedule:[
+      /* ── PHASE 1: WEEKS 1–4 ── Gentle Core & Pelvic Floor Restore */
+      {day:'Mon', name:'Phase 1 · Breathe & Reconnect', type:'Pelvic Floor · Deep Core', exercises:[
+        {name:'Diaphragmatic Breathing', sets:'3 x 10 breaths', tip:'Inhale through nose — belly and ribs expand. Exhale gently. This activates deep core pressure management.'},
+        {name:'Pelvic Floor Kegels', sets:'3 x 10 reps (hold 5 sec)', tip:'Lift and squeeze gently as if stopping urine flow. Do NOT bear down. Release fully between reps.'},
+        {name:'Heel Slides', sets:'3 x 10 reps each leg', tip:'Lie on back, slowly slide one heel out flat. Keep core gently braced. No abdominal doming.'},
+        {name:'Toe Taps', sets:'3 x 10 reps each leg', tip:'90-90 position. Gently lower one foot to tap the floor. Watch for any coning at your belly — stop if it occurs.'},
+        {name:'Supine March', sets:'3 x 10 reps each leg', tip:'Lying on back, lift one knee to 90° while keeping pelvis stable. Exhale on the lift.'}
+      ]},
+      {day:'Tue', name:'Phase 1 · Rest & Walk', type:'Active Recovery', exercises:[
+        {name:'Gentle Walk', sets:'15–20 minutes', tip:'Comfortable pace. No hills or inclines in week 1–2. Build to 30 min by week 4.'},
+        {name:'Cat-Cow Stretch', sets:'2 x 10 slow reps', tip:'On all fours. Inhale — let belly drop (cow). Exhale — round spine (cat). Move with breath.'}
+      ]},
+      {day:'Thu', name:'Phase 1 · Core & Hip Stability', type:'Deep Core · Hips', exercises:[
+        {name:'Bird Dog', sets:'3 x 8 reps each side', tip:'On all fours. Extend opposite arm and leg while keeping hips perfectly level. Hold 3 seconds. No rotation.'},
+        {name:'Dead Bug', sets:'3 x 8 reps each side', tip:'Press low back into the floor — maintain that contact throughout. Extend one arm + opposite leg slowly. Exhale on extension.'},
+        {name:'Clamshell', sets:'3 x 15 reps each side', tip:'Side-lying, knees bent at 45°. Rotate top knee up like a clamshell opening. Keep hips stacked. Add resistance band when ready.'},
+        {name:'Glute Bridge', sets:'3 x 12 reps', tip:'Feet flat, push through heels, squeeze glutes at top. Hold 2 seconds. No lumbar over-extension.'},
+        {name:'Pelvic Floor Kegels', sets:'3 x 10 reps', tip:'Combine with exhale. Lift on exhale — release fully on inhale. Quality over quantity.'}
+      ]},
+      {day:'Fri', name:'Phase 1 · Stretch & Recover', type:'Mobility · Breathwork', exercises:[
+        {name:'Cat-Cow Stretch', sets:'3 x 10 slow reps', tip:'Sync with breath. The best mobilizer for a postpartum spine.'},
+        {name:'Diaphragmatic Breathing', sets:'5 minutes', tip:'Progressive relaxation. Focus on 360° rib expansion. Releases tension in the pelvic floor.'},
+        {name:'Side-Lying Leg Raise', sets:'2 x 12 reps each side', tip:'Keep core engaged. Raise top leg to hip height — no higher. Slow and controlled.'}
+      ]},
+      /* ── PHASE 2: WEEKS 5–8 ── Add Light Strength */
+      {day:'Mon', name:'Phase 2 · Lower Body Strength', type:'Strength · Glutes & Legs', exercises:[
+        {name:'Glute Bridge', sets:'4 x 15 reps', tip:'Progress to single-leg version when ready. Drive through the heel. Squeeze hard at the top.'},
+        {name:'Wall Squat', sets:'3 x 12 reps', tip:'Back flat against wall, slide down to 90°. Hold 2 seconds. Keep knees tracking over toes.'},
+        {name:'Step-Ups', sets:'3 x 10 reps each leg', tip:'Use a sturdy step or low box. Drive through the front heel. Control the descent.'},
+        {name:'Clamshell', sets:'3 x 20 reps each side', tip:'Add a light resistance band above knees for progression.'},
+        {name:'Lateral Band Walks', sets:'3 x 12 steps each direction', tip:'Band above knees. Stay in slight squat. Feet shoulder-width. Side-step with control.'}
+      ]},
+      {day:'Tue', name:'Phase 2 · Core & Pelvic Integration', type:'Core · Stability', exercises:[
+        {name:'Dead Bug', sets:'4 x 10 reps each side', tip:'Progress to adding a light dumbbell in the arm. Maintain neutral spine throughout.'},
+        {name:'Bird Dog', sets:'4 x 10 reps each side', tip:'Add a 2-second hold at extension. Focus on keeping hips perfectly square.'},
+        {name:'Modified Side Plank', sets:'3 x 20 seconds each side', tip:'Knee on floor for support. Create a straight line from knee to shoulder. Hips forward — do not sag.'},
+        {name:'Single Leg Glute Bridge', sets:'3 x 10 reps each leg', tip:'One foot flat, other leg extended. Drive hips up. Keep pelvis level.'}
+      ]},
+      {day:'Thu', name:'Phase 2 · Upper Body & Back', type:'Strength · Posture', exercises:[
+        {name:'Resistance Band Rows', sets:'3 x 15 reps', tip:'Seated or standing. Anchor band at chest height. Pull elbows back. Squeeze shoulder blades. Great for the rounded postpartum posture.'},
+        {name:'Dumbbell Deadlifts', sets:'3 x 10 reps', tip:'Light weight. Hinge at hips — not a squat. Keep spine neutral. Feel the hamstrings load. Brace your core on the way up.'},
+        {name:'Bodyweight Squats', sets:'3 x 15 reps', tip:'Feet shoulder-width. Knees track toes. Go as deep as comfortable. Stand tall at the top.'},
+        {name:'Cat-Cow Stretch', sets:'2 x 10 reps', tip:'Always close a postpartum session with spine mobility. Reduces lower back tension.'}
+      ]},
+      {day:'Fri', name:'Phase 2 · Active Recovery Walk', type:'Cardio · Mobility', exercises:[
+        {name:'Brisk Walk', sets:'30 minutes', tip:'Aim to increase pace week over week. Wear supportive footwear. Engage your core gently.'},
+        {name:'Diaphragmatic Breathing', sets:'3 x 10 breaths', tip:'Cool-down breathwork. Return to your foundation every session.'}
+      ]},
+      /* ── PHASE 3: WEEKS 9–12 ── Return to Fitness */
+      {day:'Mon', name:'Phase 3 · Full Lower Body', type:'Strength · Power', exercises:[
+        {name:'Dumbbell Deadlifts', sets:'4 x 10 reps', tip:'Progress the weight. Focus on hip hinge mechanics. Strong posture throughout.'},
+        {name:'Hip Thrusts', sets:'4 x 12 reps', tip:'Barbell or dumbbell across hips. Upper back on bench. Drive hips up explosively. Squeeze glutes hard at the top.'},
+        {name:'Bodyweight Squats', sets:'4 x 15 reps', tip:'Add a jump squat for plyometric progression when your pelvic floor is ready. No leaking = good sign.'},
+        {name:'Reverse Lunges', sets:'3 x 12 reps each leg', tip:'Step back into lunge. Front knee tracks over toes. Back knee grazes floor. Push off front foot to stand.'},
+        {name:'Lateral Band Walks', sets:'3 x 15 steps each direction', tip:'Heavier band. Deeper squat position. Feel the glutes fire with each step.'}
+      ]},
+      {day:'Tue', name:'Phase 3 · Strength & Cardio Circuit', type:'Circuit · Conditioning', exercises:[
+        {name:'Step-Ups', sets:'4 x 12 reps each leg', tip:'Add dumbbells for load progression. Drive through the heel on every rep.'},
+        {name:'Resistance Band Rows', sets:'4 x 15 reps', tip:'Use a stronger band or add a slight pause at contraction. Posture is everything.'},
+        {name:'Single Leg Glute Bridge', sets:'4 x 12 reps each leg', tip:'Feel the difference between sides. Address any imbalance with extra sets on the weaker side.'},
+        {name:'Modified Side Plank', sets:'3 x 30 seconds each side', tip:'Progress to full side plank (feet stacked) when your core is ready. No dipping at the hips.'},
+        {name:'Brisk Walk or Light Jog', sets:'20 minutes', tip:'If jogging — monitor for any pelvic floor symptoms. Zero leaking policy. See a pelvic PT before return to running.'}
+      ]},
+      {day:'Thu', name:'Phase 3 · Total Body Power', type:'Strength · Full Body', exercises:[
+        {name:'Hip Thrusts', sets:'4 x 15 reps', tip:'Build the load progressively. This is the king of postpartum glute rebuilding.'},
+        {name:'Dumbbell Deadlifts', sets:'4 x 12 reps', tip:'Heavier than phase 2. Control the eccentric (lowering). Feel the hamstrings stretch fully.'},
+        {name:'Bodyweight Squats', sets:'4 x 20 reps', tip:'High volume finisher. Fast pace. Focus on form throughout.'},
+        {name:'Resistance Band Rows', sets:'3 x 15 reps', tip:'Superset with squats for a conditioning effect. Rest 60 seconds between rounds.'},
+        {name:'Diaphragmatic Breathing', sets:'3 x 10 breaths', tip:'End every session here. Always reconnect to the foundation you built in Phase 1.'}
+      ]},
+      {day:'Fri', name:'Phase 3 · Active Recovery & Celebrate', type:'Recovery · Mobility', exercises:[
+        {name:'Gentle Walk', sets:'30 minutes', tip:'Reflect on how far you have come. You rebuilt from the inside out.'},
+        {name:'Cat-Cow Stretch', sets:'3 x 10 reps', tip:'A tool for life. Keep this in your routine forever.'},
+        {name:'Bird Dog', sets:'2 x 10 reps each side', tip:'Your core foundation. Return to it always.'}
+      ]}
+    ]
+  }
+];
+
+/* ============ STATE ============ */
+const LS_KEY = 'forgefit_v1';
+const SESSION_KEY = 'forgefit_session_v1';
+function loadState(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  } catch(e){}
+  return { completedDays: {}, goalFilter:'All', diffFilter:'All', genderFilter:'All' };
+}
+function saveState(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+}
+let state = loadState();
+if(typeof state.genderFilter === 'undefined') state.genderFilter = 'All';
+let session = null;
+try {
+  const s = localStorage.getItem(SESSION_KEY);
+  if(s) session = JSON.parse(s);
+} catch(e){}
+if(session && !session.gender) session.gender = 'male';
+
+function currentGender(){
+  return (session && session.gender) ? session.gender : 'male';
+}
+
+/* ============ AUTH ============ */
+const authScreen = document.getElementById('auth-screen');
+const appEl = document.getElementById('app');
+const rememberSwitch = document.getElementById('remember-switch');
+const authForm = document.getElementById('auth-form');
+const authError = document.getElementById('auth-error');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+
+let remember = true;
+rememberSwitch.addEventListener('click', ()=>{
+  remember = !remember;
+  rememberSwitch.classList.toggle('on', remember);
+  rememberSwitch.setAttribute('aria-checked', remember ? 'true' : 'false');
+});
+
+/* gender set from profile */
+
+authForm.addEventListener('submit', (e)=>{ e.preventDefault(); doSignIn(); });
+
+function doSignIn(){
+  const email = emailInput.value.trim().toLowerCase();
+  const pass = passInput.value;
+  // Load saved accounts
+  let accounts = {};
+  try { accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}'); } catch(e){}
+  // Always include demo
+  accounts['demo@forgefit.app'] = 'demo';
+  if(accounts[email] && accounts[email] === pass){
+    authError.textContent = '';
+    const existingGender = (function(){ try { const s = JSON.parse(localStorage.getItem('ff_session')||'{}'); return s.gender||'male'; } catch(e){ return 'male'; } })();
+    const sess = { email, name: email.split('@')[0], loggedAt: Date.now(), gender: existingGender };
+    if(remember){
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(sess)); } catch(e){}
+      try { localStorage.setItem('ff_remember', JSON.stringify({email, pass})); } catch(e){}
+    } else {
+      try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+      try { localStorage.removeItem('ff_remember'); } catch(e){}
+    }
+    session = sess;
+    enterApp();
+  } else {
+    authError.textContent = 'Wrong credentials. Try demo@forgefit.app / demo and get to work.';
+  }
+}
+
+function setProfileGender(g) {
+  if (!session) return;
+  session.gender = g;
+  try { localStorage.setItem('ff_session', JSON.stringify(session)); } catch(e) {}
+  document.querySelectorAll('#profile-gender-row .gender-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.gender === g);
+  });
+  // Re-render today recommendations
+  renderToday();
+}
+window.setProfileGender = setProfileGender;
+
+
+/* ── AUTH TAB SWITCHING ── */
+function switchAuthTab(tab) {
+  document.getElementById('signin-panel').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('signup-panel').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+}
+window.switchAuthTab = switchAuthTab;
+
+/* ── SIGNUP GENDER SELECTOR ── */
+let signupGender = 'male';
+function selectSignupGender(g) {
+  signupGender = g;
+  document.querySelectorAll('#signup-gender-row .gender-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.gender === g);
+  });
+}
+window.selectSignupGender = selectSignupGender;
+
+/* ── CREATE ACCOUNT ── */
+function doSignUp() {
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('su-password').value;
+  const err   = document.getElementById('signup-error');
+
+  if (!name) { err.textContent = 'Enter your name.'; return; }
+  if (!email || !pass) { err.textContent = 'Fill in all fields.'; return; }
+  if (pass.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+
+  // Save account
+  let accounts = {};
+  try { accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}'); } catch(e) {}
+  if (accounts[email]) { err.textContent = 'An account with that email already exists.'; return; }
+  accounts[email] = pass;
+  try { localStorage.setItem('ff_accounts', JSON.stringify(accounts)); } catch(e) {}
+
+  // Sign in immediately
+  err.textContent = '';
+  const sess = { email, name: name, loggedAt: Date.now(), gender: signupGender };
+  try { localStorage.setItem('ff_session', JSON.stringify(sess)); } catch(e) {}
+  session = sess;
+  enterApp();
+}
+window.doSignUp = doSignUp;
+
+window.doSignIn = doSignIn;
+
+function enterApp(){
+  authScreen.style.display = 'none';
+  appEl.style.display = 'block';
+  // ensure only today view
+  showView('view-today');
+  populateUser();
+  renderToday();
+  renderPrograms();
+  renderProgress();
+  renderRecommendations();
+}
+
+function signOut(){
+  try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+  session = null;
+  appEl.style.display = 'none';
+  authScreen.style.display = 'flex';
+  emailInput.value = '';
+  passInput.value = '';
+  authError.textContent = '';
+  // hide overlays if shown
+  document.getElementById('program-detail').style.display = 'none';
+  document.getElementById('day-detail').style.display = 'none';
+}
+
+function populateUser(){
+  if(!session) return;
+  document.getElementById('user-name').textContent = session.name || 'Athlete';
+  const hr = new Date().getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = greet.replace('Good ', '').toUpperCase() + ' — TIME TO WORK';
+  document.getElementById('prof-name').textContent = session.name || 'Athlete';
+  // Sync gender buttons in profile
+  const pg = session.gender || 'male';
+  document.querySelectorAll('#profile-gender-row .gender-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.gender === pg);
+  });
+  document.getElementById('prof-email').textContent = session.email || '';
+  document.getElementById('avatar-initial').textContent = (session.name || 'A').charAt(0).toUpperCase();
+}
+
+/* ============ VIEW SWITCHING ============ */
+const VIEWS = ['view-today','view-programs','view-target','view-progress','view-more'];
+function showView(id){
+  VIEWS.forEach(v => {
+    const el = document.getElementById(v);
+    if(el) el.style.display = (v === id ? 'block' : 'none');
+  });
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === id);
+  });
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', ()=> showView(n.dataset.view));
+});
+
+/* ============ TODAY ============ */
+function renderToday(){
+  // Featured: today's day-of-week from program 0
+  const dayMap = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const todayAbbr = dayMap[new Date().getDay()];
+  const p = PROGRAMS[0];
+  const day = p.schedule.find(d => d.day === todayAbbr) || p.schedule[0];
+  document.getElementById('featured-name').textContent = day.name;
+  document.getElementById('featured-meta').textContent = p.name + ' · ' + day.exercises.length + ' exercises';
+  document.getElementById('featured-card').onclick = ()=> openDayWorkout(0, p.schedule.indexOf(day));
+
+  // Stats
+  const done = Object.values(state.completedDays).filter(Boolean).length;
+  const streak = computeStreak();
+  const adh = computeAdherence();
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-adh').textContent = adh + '%';
+}
+
+function computeStreak(){
+  // count consecutive days back from today that are marked done
+  let s = 0;
+  const today = new Date();
+  for(let i = 0; i < 365; i++){
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const k = dateKey(d);
+    if(state.completedDays[k]) s++;
+    else break;
+  }
+  return s;
+}
+function computeAdherence(){
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const elapsed = today.getDate();
+  let done = 0;
+  for(let d = 1; d <= elapsed; d++){
+    const k = dateKey(new Date(y, m, d));
+    if(state.completedDays[k]) done++;
+  }
+  if(elapsed === 0) return 0;
+  return Math.round((done / elapsed) * 100);
+}
+function dateKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+/* ============ PROGRAMS ============ */
+const programList = document.getElementById('program-list');
+const goalFilter = document.getElementById('goal-filter');
+const diffFilter = document.getElementById('diff-filter');
+const genderFilterEl = document.getElementById('gender-filter');
+
+genderFilterEl.addEventListener('click', e=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  genderFilterEl.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  state.genderFilter = pill.dataset.val;
+  saveState();
+  renderPrograms();
+});
+
+goalFilter.addEventListener('click', e=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  goalFilter.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  state.goalFilter = pill.dataset.val;
+  saveState();
+  renderPrograms();
+});
+diffFilter.addEventListener('click', e=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  diffFilter.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  state.diffFilter = pill.dataset.val;
+  saveState();
+  renderPrograms();
+});
+
+function renderPrograms(){
+  // restore active pills from state
+  goalFilter.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.val === state.goalFilter));
+  diffFilter.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.val === state.diffFilter));
+  genderFilterEl.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.val === state.genderFilter));
+
+  programList.innerHTML = '';
+  PROGRAMS.forEach((p, i) => {
+    if(state.goalFilter !== 'All' && p.goal !== state.goalFilter) return;
+    if(state.diffFilter !== 'All' && p.difficulty !== state.diffFilter) return;
+    if(state.genderFilter !== 'All'){
+      const pg = p.gender || 'any';
+      // show programs tagged for selected gender or 'any' (unisex)
+      if(pg !== state.genderFilter && pg !== 'any') return;
+    }
+    const card = document.createElement('div');
+    card.className = 'prog-card';
+    card.innerHTML = `
+      <div class="pname">${escapeHTML(p.name)}</div>
+      <div class="prog-tags">
+        <div class="tag">${escapeHTML(p.goal)}</div>
+        <div class="tag gray">${escapeHTML(p.difficulty)}</div>
+        <div class="tag gray">${escapeHTML(p.duration)}</div>
+        <div class="tag gray">${escapeHTML(p.days)}</div>
+      </div>
+      <div class="desc">${escapeHTML(p.about.slice(0, 130))}${p.about.length > 130 ? '…' : ''}</div>
+    `;
+    card.addEventListener('click', ()=> openProgram(i));
+    programList.appendChild(card);
+  });
+  if(!programList.children.length){
+    programList.innerHTML = '<div style="text-align:center;color:#7a7a82;padding:30px;font-size:13px">No programs match these filters.</div>';
+  }
+}
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============ PROGRAM DETAIL ============ */
+const progDetail = document.getElementById('program-detail');
+let currentProgramId = null;
+
+function openProgram(id){
+  currentProgramId = id;
+  const p = PROGRAMS[id];
+  document.getElementById('pd-top-title').textContent = p.name;
+  document.getElementById('pd-name').textContent = p.name;
+  document.getElementById('pd-about').textContent = p.about || '';
+  // Show medical disclaimer if program has one
+  let disclaimerEl = document.getElementById('pd-disclaimer');
+  if(!disclaimerEl){
+    disclaimerEl = document.createElement('div');
+    disclaimerEl.id = 'pd-disclaimer';
+    disclaimerEl.style.cssText = 'background:#1a0a00;border:1px solid #ff6600;border-radius:10px;padding:12px 14px;font-size:12px;color:#ffaa66;line-height:1.5;margin-bottom:14px;';
+    const aboutEl = document.getElementById('pd-about');
+    aboutEl.parentNode.insertBefore(disclaimerEl, aboutEl.nextSibling);
+  }
+  if(p.disclaimer){
+    disclaimerEl.textContent = p.disclaimer;
+    disclaimerEl.style.display = 'block';
+  } else {
+    disclaimerEl.style.display = 'none';
+  }
+  const tagsEl = document.getElementById('pd-tags');
+  tagsEl.innerHTML = `
+    <div class="tag">${escapeHTML(p.goal)}</div>
+    <div class="tag gray">${escapeHTML(p.difficulty)}</div>
+    <div class="tag gray">${escapeHTML(p.duration)}</div>
+    <div class="tag gray">${escapeHTML(p.days)}</div>
+  `;
+  const sch = document.getElementById('pd-schedule');
+  sch.innerHTML = '';
+  p.schedule.forEach((d, idx) => {
+    const row = document.createElement('div');
+    row.className = 'day-row';
+    row.innerHTML = `
+      <div class="day-abbr">${escapeHTML(d.day)}</div>
+      <div class="day-info">
+        <div class="n">${escapeHTML(d.name)}</div>
+        <div class="t">${escapeHTML(d.type)}</div>
+      </div>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    `;
+    row.addEventListener('click', ()=> openDayWorkout(id, idx));
+    sch.appendChild(row);
+  });
+  const eq = document.getElementById('pd-equipment');
+  eq.innerHTML = '';
+  p.equipment.forEach(e => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = e;
+    eq.appendChild(c);
+  });
+  progDetail.style.display = 'block';
+  progDetail.scrollTop = 0;
+  window.scrollTo(0,0);
+}
+function closeProgram(){
+  progDetail.style.display = 'none';
+  currentProgramId = null;
+}
+window.openProgram = openProgram;
+window.closeProgram = closeProgram;
+
+/* ============ DAY DETAIL ============ */
+const dayDetail = document.getElementById('day-detail');
+
+function openDayWorkout(programId, dayIndex){
+  const p = PROGRAMS[programId];
+  const d = p.schedule[dayIndex];
+  document.getElementById('dd-top-title').textContent = d.name;
+  document.getElementById('dd-program').textContent = p.name + ' · ' + d.day;
+  document.getElementById('dd-name').textContent = d.name;
+  document.getElementById('dd-type').textContent = d.type;
+  const ex = document.getElementById('dd-exercises');
+  ex.innerHTML = '';
+  d.exercises.forEach((e, i) => {
+    const c = document.createElement('div');
+    c.className = 'ex-card';
+    const ytId2 = getYTId(e.name);
+    const wBtn = ytId2 ? `<a class="watch-btn" href="https://www.youtube.com/watch?v=${ytId2}" target="_blank" rel="noopener noreferrer">&#9654; WATCH</a>` : '';
+    c.innerHTML = `
+      <div class="ex-num">${i+1}</div>
+      <div class="ex-body">
+        <div class="ex-name">${escapeHTML(e.name)}</div>
+        <div class="ex-sets">${escapeHTML(e.sets)}</div>
+        <div class="ex-tip">${escapeHTML(e.tip)}</div>
+        ${wBtn}
+      </div>
+    `;
+    ex.appendChild(c);
+  });
+  dayDetail.style.display = 'block';
+  dayDetail.scrollTop = 0;
+}
+function closeDayWorkout(){
+  dayDetail.style.display = 'none';
+}
+window.openDayWorkout = openDayWorkout;
+window.closeDayWorkout = closeDayWorkout;
+
+/* ============ RECOMMENDATIONS ============ */
+const MALE_RECS = [0, 6, 7];           // Build Beast Cut, Power Athlete, Shred Season
+const FEMALE_RECS = [12, 15, 13];      // Glute & Curve Builder, Female Fat Burner, Tone and Tighten
+
+function renderRecommendations(){
+  const recoList = document.getElementById('reco-list');
+  if(!recoList) return;
+  const ids = currentGender() === 'female' ? FEMALE_RECS : MALE_RECS;
+  recoList.innerHTML = '';
+  ids.forEach(id => {
+    const p = PROGRAMS[id];
+    if(!p) return;
+    const item = document.createElement('div');
+    item.className = 'reco-item';
+    const emoji = p.emoji || (currentGender() === 'female' ? '✨' : '🔥');
+    item.innerHTML = `
+      <div class="reco-emoji">${emoji}</div>
+      <div class="reco-body">
+        <div class="reco-name">${escapeHTML(p.name)}</div>
+        <div class="reco-goal">${escapeHTML(p.goal)} · ${escapeHTML(p.difficulty)}</div>
+      </div>
+      <button class="reco-view" data-id="${id}">View</button>
+    `;
+    item.querySelector('.reco-view').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openProgram(id);
+    });
+    recoList.appendChild(item);
+  });
+}
+window.renderRecommendations = renderRecommendations;
+
+/* ============ PROGRESS ============ */
+function renderProgress(){
+  const streak = computeStreak();
+  const adh = computeAdherence();
+  const vol = Object.values(state.completedDays).filter(Boolean).length;
+  document.getElementById('prog-streak').textContent = streak;
+  document.getElementById('prog-adh').textContent = adh + '%';
+  document.getElementById('prog-fill').style.width = adh + '%';
+  document.getElementById('prog-vol').textContent = vol;
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month').textContent = monthNames[m] + ' ' + y;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  const labels = ['S','M','T','W','T','F','S'];
+  labels.forEach(l => {
+    const d = document.createElement('div');
+    d.className = 'cal-day-label';
+    d.textContent = l;
+    grid.appendChild(d);
+  });
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  for(let i = 0; i < firstDay; i++){
+    const e = document.createElement('div');
+    e.className = 'cal-day empty';
+    grid.appendChild(e);
+  }
+  for(let d = 1; d <= daysInMonth; d++){
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.textContent = d;
+    const k = dateKey(new Date(y, m, d));
+    if(state.completedDays[k]) cell.classList.add('done');
+    if(d === today.getDate()) cell.classList.add('today');
+    cell.addEventListener('click', ()=>{
+      state.completedDays[k] = !state.completedDays[k];
+      if(!state.completedDays[k]) delete state.completedDays[k];
+      saveState();
+      renderProgress();
+      renderToday();
+    });
+    grid.appendChild(cell);
+  }
+}
+
+/* ============ TIMER ============ */
+let tMin = 1, tSec = 30;
+let tRemaining = 90; // seconds
+let tRunning = false;
+let tInterval = null;
+
+const tDisplay = document.getElementById('t-display');
+const tMinEl = document.getElementById('t-min');
+const tSecEl = document.getElementById('t-sec');
+const tToggle = document.getElementById('t-toggle');
+const tReset = document.getElementById('t-reset');
+
+function fmt(s){
+  const m = Math.floor(s/60), sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+function renderTimer(){
+  tMinEl.textContent = tMin;
+  tSecEl.textContent = String(tSec).padStart(2,'0');
+  tDisplay.textContent = fmt(tRemaining);
+  tToggle.textContent = tRunning ? 'Pause' : 'Start';
+}
+function syncRemaining(){
+  if(!tRunning) tRemaining = tMin * 60 + tSec;
+  renderTimer();
+}
+document.getElementById('m-up').addEventListener('click', ()=>{ if(tMin < 59){ tMin++; syncRemaining(); }});
+document.getElementById('m-down').addEventListener('click', ()=>{ if(tMin > 0){ tMin--; syncRemaining(); }});
+document.getElementById('s-up').addEventListener('click', ()=>{
+  tSec += 5; if(tSec >= 60){ tSec = 0; if(tMin < 59) tMin++; }
+  syncRemaining();
+});
+document.getElementById('s-down').addEventListener('click', ()=>{
+  tSec -= 5;
+  if(tSec < 0){
+    if(tMin > 0){ tMin--; tSec = 55; }
+    else { tSec = 0; }
+  }
+  syncRemaining();
+});
+tToggle.addEventListener('click', ()=>{
+  if(tRunning){
+    tRunning = false;
+    clearInterval(tInterval);
+    tInterval = null;
+  } else {
+    if(tRemaining <= 0) tRemaining = tMin * 60 + tSec;
+    if(tRemaining <= 0) return;
+    tRunning = true;
+    tInterval = setInterval(()=>{
+      tRemaining--;
+      if(tRemaining <= 0){
+        clearInterval(tInterval);
+        tInterval = null;
+        tRunning = false;
+        tRemaining = 0;
+        renderTimer();
+        if(navigator.vibrate){ try { navigator.vibrate([300, 120, 300, 120, 500]); } catch(e){} }
+        try { beep(); } catch(e){}
+        return;
+      }
+      renderTimer();
+    }, 1000);
+  }
+  renderTimer();
+});
+tReset.addEventListener('click', ()=>{
+  tRunning = false;
+  if(tInterval){ clearInterval(tInterval); tInterval = null; }
+  tRemaining = tMin * 60 + tSec;
+  renderTimer();
+});
+
+function beep(){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ctx = new AC();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    o.start(); o.stop(ctx.currentTime + 0.6);
+  } catch(e){}
+}
+
+syncRemaining();
+
+/* ============ TARGET / BODY PARTS ============ */
+const TARGET_MUSCLES = [
+  { id:'chest', name:'Chest', icon:'icon_chest.png', workouts:[
+    { name:'Beast Chest Blitz', level:'Expert', equipment:'Barbell · Dumbbells · Cables', duration:'55 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Barbell Bench Press',sets:'Giant Set: 15–12–8–8 reps',tip:'Increase weight each set. Control the descent 3 sec. Body Beast style progressive overload.'},
+        {name:'Incline Dumbbell Press',sets:'4 sets x 10 reps',tip:'30° incline. Full stretch at the bottom every rep. Slow eccentric, explosive press.'},
+        {name:'Decline Barbell Press',sets:'3 sets x 10 reps',tip:'Angle targets lower chest. Keep feet locked, full range of motion.'},
+        {name:'Cable Chest Fly',sets:'3 sets x 12 reps',tip:'Full stretch at the bottom, hard squeeze at the top. Think hugging a tree.'},
+        {name:'Dumbbell Pullover',sets:'3 sets x 12 reps',tip:'Keep a slight elbow bend, feel the chest and lats stretch fully.'},
+        {name:'Push-Up Burnout',sets:'1 set x max reps',tip:'Hands wide, go to full failure. Finish every chest workout with this.'},
+        {name:'Dips (Chest Focus)',sets:'3 sets x 12 reps',tip:'Lean forward 30°, wide grip to bias chest over triceps.'}
+      ]
+    },
+    { name:'P90X Chest & Back', level:'Intermediate', equipment:'Pull-Up Bar · Dumbbells', duration:'50 min', sets:'Supersets',
+      exercises:[
+        {name:'Standard Push-Up',sets:'3 sets x 12 reps',tip:'P90X style — hands shoulder-width, chest to floor, full lockout.'},
+        {name:'Wide Front Pull-Up',sets:'3 sets x 8 reps',tip:'Wide grip, lead with your chest up to the bar.'},
+        {name:'Military Push-Up',sets:'3 sets x 12 reps',tip:'Elbows tight to body, targets triceps and inner chest.'},
+        {name:'Reverse Grip Chin-Up',sets:'3 sets x 8 reps',tip:'Supinated grip, squeeze biceps hard at the top.'},
+        {name:'Wide Fly Push-Up',sets:'3 sets x 10 reps',tip:'Extra wide hands, lower very slowly for maximum chest stretch.'},
+        {name:'Close Grip Overhand Pull-Up',sets:'3 sets x 8 reps',tip:'Hands 6 inches apart, full dead hang start.'},
+        {name:'Decline Push-Up',sets:'3 sets x 10 reps',tip:'Feet elevated, targets upper chest and front delts.'},
+        {name:'Heavy Bag Push-Up',sets:'2 sets x 15 reps',tip:'Hands on a bag or ball for instability — forces stabilizers to fire.'}
+      ]
+    },
+    { name:'Chest Hypertrophy Block', level:'Intermediate', equipment:'Dumbbells · Cables · Bench', duration:'45 min', sets:'Straight Sets',
+      exercises:[
+        {name:'Dumbbell Bench Press',sets:'4 sets x 10 reps',tip:'Full ROM. Elbows at 45°. Pause 1 second at the chest.'},
+        {name:'Incline Cable Fly',sets:'3 sets x 15 reps',tip:'High to low cable path, full stretch, feel the inner chest squeeze.'},
+        {name:'Pec Deck Machine',sets:'3 sets x 15 reps',tip:'Do not overextend at the back. Control the return.'},
+        {name:'Single Arm Cable Crossover',sets:'3 sets x 12 reps each side',tip:'Full stretch, cross your wrist past center.'},
+        {name:'Push-Up with Pause',sets:'3 sets x 10 reps',tip:'3-second descent, 1-second hold at the chest, explosive up.'},
+        {name:'Dumbbell Squeeze Press',sets:'3 sets x 12 reps',tip:'Press dumbbells into each other the whole time. Brutal inner chest pump.'}
+      ]
+    },
+    { name:'Chest Power Session', level:'Expert', equipment:'Barbell · Bench', duration:'40 min', sets:'5x5 Strength',
+      exercises:[
+        {name:'Barbell Bench Press',sets:'5 sets x 5 reps',tip:'Max strength focus. 3–4 minute rest between sets. Add weight every week.'},
+        {name:'Incline Barbell Press',sets:'4 sets x 5 reps',tip:'Same protocol. Upper chest strength builder.'},
+        {name:'Weighted Dip',sets:'3 sets x 6 reps',tip:'Add a plate or dumbbell between legs. Full range.'},
+        {name:'Paused Bench Press',sets:'3 sets x 3 reps',tip:'3-second dead stop at the chest. Eliminates bounce, builds raw strength.'}
+      ]
+    }
+  ]},
+  { id:'back', name:'Back', icon:'icon_back.png', workouts:[
+    { name:'Body Beast Back Attack', level:'Expert', equipment:'Barbell · Dumbbells · Cables · Pull-Up Bar', duration:'60 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Deadlift',sets:'Giant Set: 15–12–8–8 reps',tip:'Bar close to shins, hinge hard at hips. This is the king of back builders.'},
+        {name:'Wide-Grip Pull-Up',sets:'4 sets x 8 reps',tip:'Dead hang start. Get your chest to the bar, not just your chin.'},
+        {name:'Barbell Bent-Over Row',sets:'4 sets x 10 reps',tip:'Hinge to 45°, pull bar to lower chest, squeeze shoulder blades together.'},
+        {name:'Seated Cable Row',sets:'3 sets x 12 reps',tip:'Tall chest, drive elbows back past your torso each rep.'},
+        {name:'Single Arm Dumbbell Row',sets:'3 sets x 10 reps each side',tip:'Flat back. Row elbow straight up to your hip. No twisting.'},
+        {name:'Lat Pulldown',sets:'3 sets x 12 reps',tip:'Wide grip, slight back lean, pull bar to upper chest.'},
+        {name:'Face Pull',sets:'3 sets x 15 reps',tip:'High anchor, pull rope to your face with external rotation. Crucial for shoulder health.'},
+        {name:'Straight-Arm Pulldown',sets:'3 sets x 15 reps',tip:'Arms straight, pull bar to hips. Isolates the lat perfectly.'}
+      ]
+    },
+    { name:'P90X Back & Biceps', level:'Intermediate', equipment:'Pull-Up Bar · Dumbbells', duration:'50 min', sets:'Supersets',
+      exercises:[
+        {name:'Wide Front Pull-Up',sets:'3 sets x 8 reps',tip:'Full dead hang, wide grip, pull chest to bar.'},
+        {name:'Lawnmower Row',sets:'3 sets x 10 reps each side',tip:'P90X move — low start, explosive pull up like starting a lawnmower.'},
+        {name:'Two-Arm Supinated Pull-Up',sets:'3 sets x 8 reps',tip:'Both palms facing you, squeeze biceps at the top.'},
+        {name:'Heavy Pants',sets:'3 sets x 10 reps',tip:'Hip hinge, both arms row dumbbells at the same time. Back stays flat.'},
+        {name:'Switch Grip Pull-Up',sets:'3 sets x 6 reps',tip:'Alternate grip each rep. Builds coordination and width.'},
+        {name:'Corn Cob Pull-Up',sets:'2 sets x 5 reps',tip:'At the top, move right, left, then lower. One of the hardest pull-up variations.'},
+        {name:'Reverse Grip Chin-Up',sets:'3 sets x 8 reps',tip:'Underhand grip, full bicep engagement.'},
+        {name:'Towel Pull-Up',sets:'2 sets x 5 reps',tip:'Drape a towel over the bar, grip it. Destroys forearms and back simultaneously.'}
+      ]
+    },
+    { name:'Thick Back Builder', level:'Intermediate', equipment:'Barbell · Cables · Dumbbells', duration:'50 min', sets:'Straight Sets',
+      exercises:[
+        {name:'T-Bar Row',sets:'4 sets x 8 reps',tip:'Chest supported or standing. Pull elbows back as far as possible.'},
+        {name:'Chest Supported Row',sets:'4 sets x 10 reps',tip:'Removes lower back from the equation, isolates mid-back.'},
+        {name:'Seated Cable Row Wide Grip',sets:'3 sets x 12 reps',tip:'Wide grip attachment, pull to upper abs for upper back emphasis.'},
+        {name:'Rack Pull',sets:'3 sets x 6 reps',tip:'Start bar at knee height. Heavy weight, pure upper back overload.'},
+        {name:'Dumbbell Shrug',sets:'4 sets x 20 reps',tip:'Straight up, no rolling. Hold at the top for 1 second.'},
+        {name:'Lat Pulldown Behind Neck',sets:'3 sets x 10 reps',tip:'Only if your mobility allows. Targets the upper lats differently.'}
+      ]
+    }
+  ]},
+  { id:'legs', name:'Legs', icon:'icon_legs.png', workouts:[
+    { name:'Body Beast Legs Destroyer', level:'Expert', equipment:'Barbell · Leg Press · Dumbbells', duration:'65 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Back Squat',sets:'Giant Set: 15–12–8–8 reps',tip:'Drive from the heels. Break parallel on every rep. This is the foundation.'},
+        {name:'Leg Press',sets:'4 sets x 12 reps',tip:'Full range. Never lock the knees. Feet shoulder-width.'},
+        {name:'Walking Lunge',sets:'3 sets x 20 steps',tip:'Long stride, full hip extension at the top. Use dumbbells to add load.'},
+        {name:'Romanian Deadlift',sets:'4 sets x 10 reps',tip:'Soft knees, hinge from the hip, feel the hamstring pull. Keep bar close.'},
+        {name:'Leg Curl Machine',sets:'4 sets x 12 reps',tip:'Full hip extension to start. Slow 3-second eccentric on the way down.'},
+        {name:'Leg Extension',sets:'3 sets x 15 reps',tip:'Pause 1 second at the top. Do not swing.'},
+        {name:'Standing Calf Raise',sets:'5 sets x 20 reps',tip:'Full stretch at the bottom every single rep. Most people cheat this constantly.'},
+        {name:'Sissy Squat',sets:'3 sets x 10 reps',tip:'Hold a post for balance, lean back, drop knees to the floor. Extreme quad isolation.'}
+      ]
+    },
+    { name:'P90X Legs & Back', level:'Intermediate', equipment:'Pull-Up Bar · Dumbbells', duration:'55 min', sets:'Circuits',
+      exercises:[
+        {name:'Balance Lunge',sets:'3 sets x 10 reps each side',tip:'Rear foot elevated. Tests balance and depth. Drive through the front heel.'},
+        {name:'Calf Raise Squat',sets:'3 sets x 15 reps',tip:'Squat down, pause, rise onto toes, lower. Tony Horton staple.'},
+        {name:'Reverse Grip Chin-Up',sets:'3 sets x 8 reps',tip:'Supinated grip. Back and biceps.'},
+        {name:'Super Skater',sets:'3 sets x 10 reps each side',tip:'Lateral squat on one leg. Touch the floor. Hits inner thighs and glutes.'},
+        {name:'Wide Front Pull-Up',sets:'3 sets x 8 reps',tip:'Full stretch at the bottom, chest to bar at the top.'},
+        {name:'Step Back Lunge',sets:'3 sets x 12 reps each side',tip:'Controlled. Hover the rear knee just above the floor.'},
+        {name:'Alternating Side Lunge',sets:'3 sets x 10 reps each side',tip:'Push hips back, keep foot flat, drop to 90°.'},
+        {name:'Single Leg Wall Squat',sets:'3 x 30 seconds each side',tip:'Back flat against the wall, one leg extended forward. Brutal quad burn.'}
+      ]
+    },
+    { name:'Hamstrings & Glutes Focus', level:'Intermediate', equipment:'Barbell · Cables · Dumbbells', duration:'50 min', sets:'Straight Sets',
+      exercises:[
+        {name:'Sumo Deadlift',sets:'4 sets x 6 reps',tip:'Wide stance, toes out, more upright torso. Targets inner thighs and glutes more.'},
+        {name:'Hip Thrust',sets:'4 sets x 12 reps',tip:'Bar on hips, back on bench. Drive through the heel. Hard glute squeeze at the top.'},
+        {name:'Bulgarian Split Squat',sets:'3 sets x 10 reps each side',tip:'Rear foot elevated. Front leg does all the work. Deep bend.'},
+        {name:'Cable Pull-Through',sets:'3 sets x 15 reps',tip:'Low cable between legs. Hinge and drive hips forward. Pure glute and hamstring.'},
+        {name:'Glute Ham Raise',sets:'3 sets x 8 reps',tip:'If available. Most brutal hamstring exercise in existence.'},
+        {name:'Single Leg Deadlift',sets:'3 sets x 10 reps each side',tip:'Hold a dumbbell, hinge on one leg. Incredible for balance and hamstring.'},
+        {name:'Seated Leg Curl',sets:'3 sets x 15 reps',tip:'Full extension to start. Slow controlled negative every rep.'}
+      ]
+    },
+    { name:'Quad Annihilator', level:'Expert', equipment:'Barbell · Leg Press · Cables', duration:'50 min', sets:'Drop Sets',
+      exercises:[
+        {name:'Front Squat',sets:'4 sets x 8 reps',tip:'Bar in front rack position. More upright torso, massive quad emphasis.'},
+        {name:'Hack Squat',sets:'4 sets x 10 reps',tip:'Machine or barbell behind legs. Pure quad isolation.'},
+        {name:'Leg Press Drop Set',sets:'3 sets x 10 reps + drop',tip:'Hit 10, strip weight, hit 10 more. Twice. No rest during the drop.'},
+        {name:'Leg Extension Burnout',sets:'3 sets x 20 reps',tip:'Light weight, full extension, feel the quad fire completely.'},
+        {name:'Cyclist Squat',sets:'3 sets x 15 reps',tip:'Heels elevated on plates. Leans your torso forward, absolute quad torture.'}
+      ]
+    }
+  ]},
+  { id:'shoulders', name:'Shoulders', icon:'icon_shoulders.png', workouts:[
+    { name:'Boulder Shoulder Builder', level:'Expert', equipment:'Barbell · Dumbbells · Cables', duration:'55 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Overhead Barbell Press',sets:'Giant Set: 15–12–8–8 reps',tip:'Seated or standing. Brace your core hard. No lower back arch.'},
+        {name:'Dumbbell Lateral Raise',sets:'4 sets x 15 reps',tip:'Lead with your elbows. Slight forward lean. Stop at shoulder height.'},
+        {name:'Dumbbell Front Raise',sets:'3 sets x 12 reps',tip:'Alternate arms. Thumbs up. Control the descent.'},
+        {name:'Bent-Over Rear Delt Fly',sets:'4 sets x 15 reps',tip:'Hinge to parallel, arms wide, lead with elbows up and back.'},
+        {name:'Arnold Press',sets:'3 sets x 10 reps',tip:'Rotate as you press. From palms-in to palms-forward. Full ROM.'},
+        {name:'Cable Upright Row',sets:'3 sets x 12 reps',tip:'Pull bar to chin, elbows high and wide. Hits traps and lateral delts.'},
+        {name:'Face Pull',sets:'3 sets x 15 reps',tip:'High anchor, rope attachment, pull to your forehead with external rotation.'}
+      ]
+    },
+    { name:'P90X Shoulders & Arms', level:'Intermediate', equipment:'Dumbbells · Cables', duration:'50 min', sets:'Supersets',
+      exercises:[
+        {name:'Seated Dumbbell Press',sets:'3 sets x 10 reps',tip:'Neutral back, don not arch. Push straight up.'},
+        {name:'In & Out Bicep Curl',sets:'3 sets x 10 reps',tip:'In = hammer curl, out = wide curl. Alternating on each rep.'},
+        {name:'Two Arm Tricep Kickback',sets:'3 sets x 15 reps',tip:'Hinge forward, both arms kick back simultaneously.'},
+        {name:'Deep Swimmer Press',sets:'3 sets x 10 reps',tip:'Curl up then rotate and press. Combines bicep and shoulder.'},
+        {name:'Full Supination Curl',sets:'3 sets x 10 reps',tip:'Start neutral, rotate palm up as you curl. Full bicep activation.'},
+        {name:'Overhead Tricep Extension',sets:'3 sets x 12 reps',tip:'Both hands on one dumbbell. Full stretch overhead. Control on the way down.'},
+        {name:'Congdon Curl',sets:'3 sets x 10 reps',tip:'Wide out curl — brings both dumbbells out to sides, then up.'},
+        {name:'Side Tri-Rise',sets:'3 sets x 10 reps each side',tip:'Lay on your side, push your torso up with one arm. Bodyweight tricep move.'}
+      ]
+    },
+    { name:'Rear Delt & Trap Destroyer', level:'Intermediate', equipment:'Cables · Dumbbells', duration:'40 min', sets:'Straight Sets',
+      exercises:[
+        {name:'Face Pull',sets:'5 sets x 20 reps',tip:'The single most neglected shoulder exercise. High anchor, external rotation at the end.'},
+        {name:'Bent-Over Rear Delt Fly',sets:'4 sets x 15 reps',tip:'Hinge to horizontal. Arms wide. Feel the rear delt and trap squeeze.'},
+        {name:'Seated Rear Delt Machine Fly',sets:'3 sets x 15 reps',tip:'Slow, controlled. Do not use momentum.'},
+        {name:'Cable Rear Delt Pull',sets:'3 sets x 15 reps each side',tip:'Single arm, cross cable. Pull straight back at shoulder height.'},
+        {name:'Barbell Shrug',sets:'4 sets x 15 reps',tip:'Straight up, hold 1 second, slow down. No neck rolling.'},
+        {name:'Dumbbell Shrug',sets:'3 sets x 20 reps',tip:'Use heavy weight. Traps respond to high rep and heavy load both.'}
+      ]
+    }
+  ]},
+  { id:'arms', name:'Arms', icon:'icon_arms.png', workouts:[
+    { name:'Body Beast Arms Giant Set', level:'Expert', equipment:'Barbell · Dumbbells · Cables', duration:'55 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Barbell Curl',sets:'Giant Set: 15–12–8–8 reps',tip:'Full supination at the top. Slow 3-second descent every rep.'},
+        {name:'Overhead Tricep Extension',sets:'Giant Set: 15–12–8–8 reps',tip:'EZ-bar or rope. Full stretch overhead. Do not flare elbows.'},
+        {name:'Incline Dumbbell Curl',sets:'3 sets x 10 reps',tip:'Arms hang fully for maximum stretch. This is the best bicep stretch position.'},
+        {name:'Skull Crusher',sets:'3 sets x 10 reps',tip:'Lower bar to forehead. Keep elbows pointing straight at the ceiling.'},
+        {name:'Concentration Curl',sets:'3 sets x 12 reps each side',tip:'Elbow on inner thigh. Zero body swing. Full squeeze at the top.'},
+        {name:'Close-Grip Bench Press',sets:'3 sets x 10 reps',tip:'Elbows tight to torso. Tricep dominant chest press.'},
+        {name:'Hammer Curl',sets:'3 sets x 12 reps',tip:'Neutral grip. Works brachialis and brachioradialis. Builds arm thickness.'},
+        {name:'Tricep Pushdown',sets:'3 sets x 15 reps',tip:'Rope or bar. Full extension every rep. Elbows pinned.'},
+        {name:'21s Barbell Curl',sets:'2 sets x 21 reps',tip:'7 reps bottom half, 7 reps top half, 7 full reps. Classic Body Beast finisher.'}
+      ]
+    },
+    { name:'P90X Biceps & Triceps Blast', level:'Intermediate', equipment:'Dumbbells · Cables · Bench', duration:'45 min', sets:'Supersets',
+      exercises:[
+        {name:'Twenty-One Curl',sets:'3 sets x 21 reps',tip:'7 bottom, 7 top, 7 full. Tony Horton go-to.'},
+        {name:'Tricep Dip',sets:'3 sets x 12 reps',tip:'Between two chairs or on a bench. Full lockout at top.'},
+        {name:'Curl & Hammer Superset',sets:'3 sets x 10 reps each',tip:'Do 10 regular curls, immediately do 10 hammer curls. No rest.'},
+        {name:'Diamond Push-Up',sets:'3 sets x 12 reps',tip:'Hands form a diamond. Best bodyweight tricep exercise.'},
+        {name:'EZ-Bar Curl',sets:'3 sets x 12 reps',tip:'Easier on the wrists. Full supination at the top.'},
+        {name:'Overhead Tricep Extension',sets:'3 sets x 12 reps',tip:'One heavy dumbbell, both hands. Full stretch every rep.'},
+        {name:'Reverse Curl',sets:'3 sets x 10 reps',tip:'Overhand grip. Destroys the forearms and brachialis.'}
+      ]
+    },
+    { name:'Forearm & Grip Forge', level:'Beginner', equipment:'Dumbbells · Barbell', duration:'30 min', sets:'Straight Sets',
+      exercises:[
+        {name:'Barbell Wrist Curl',sets:'4 sets x 20 reps',tip:'Forearms on bench, wrists hang off. Roll the bar down and curl up.'},
+        {name:'Reverse Wrist Curl',sets:'4 sets x 15 reps',tip:'Overhand grip. Works the extensor side of the forearm.'},
+        {name:'Farmer Carry',sets:'4 x 40 meters',tip:'Heavy dumbbells or trap bar. Walk with purpose. Builds total grip and core.'},
+        {name:'Dead Hang',sets:'4 x 30 seconds',tip:'Just hang from a pull-up bar. Builds grip strength fast.'},
+        {name:'Plate Pinch',sets:'3 x 20 seconds',tip:'Pinch two plates smooth side out. Hold as long as possible.'}
+      ]
+    }
+  ]},
+  { id:'core', name:'Core', icon:'icon_core.png', workouts:[
+    { name:'P90X Ab Ripper X', level:'Intermediate', equipment:'Floor Mat', duration:'16 min', sets:'Circuits',
+      exercises:[
+        {name:'In & Outs',sets:'25 reps',tip:'Bring knees to chest and extend. Keep feet off the floor the whole time.'},
+        {name:'Bicycle',sets:'25 reps each side',tip:'Elbow to opposite knee. Slow and deliberate. Do not rush.'},
+        {name:'Reverse Bicycle',sets:'25 reps each side',tip:'Same motion but reversed. Targets a different part of the obliques.'},
+        {name:'Crunchy Frog',sets:'25 reps',tip:'Hug your knees in, then extend out. Arms stay off the ground.'},
+        {name:'Cross-Leg Wide Leg Sit-Up',sets:'25 reps',tip:'Wide legs, touch opposite feet. Full sit-up range.'},
+        {name:'Fifer Scissors',sets:'25 reps each side',tip:'One leg up, one down, alternate. Keep both off the ground.'},
+        {name:'Hip Rock & Raise',sets:'25 reps',tip:'Raise hips straight up at the top. Targets lower abs.'},
+        {name:'V Up Roll Up',sets:'25 reps',tip:'V-up, then roll back and reach overhead. Very hard. Scale as needed.'},
+        {name:'Oblique V Up',sets:'25 reps each side',tip:'On your side, raise legs and torso together.'},
+        {name:'Leg Climb',sets:'12 reps each side',tip:'Hang a leg, climb up to it one hand at a time. Brutal hip flexor.'},
+        {name:'Mason Twist',sets:'40 reps',tip:'Lean back 45°, rotate side to side with a weight or hands clasped.'}
+      ]
+    },
+    { name:'Beast Core Crusher', level:'Expert', equipment:'Ab Wheel · Pull-Up Bar · Cables', duration:'35 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Ab Wheel Rollout',sets:'4 sets x 10 reps',tip:'Brace hard before rolling. Go as far as you can maintain a straight spine.'},
+        {name:'Hanging Leg Raise',sets:'4 sets x 15 reps',tip:'Full hip extension at the bottom. Raise toes to the bar for max difficulty.'},
+        {name:'Cable Crunch',sets:'3 sets x 15 reps',tip:'Kneel, pull rope to elbows, crunch down hard. Slow on the way back up.'},
+        {name:'L-Sit Hold',sets:'3 x 15 seconds',tip:'On parallel bars or dip bars. Core fully braced, legs horizontal.'},
+        {name:'Dragon Flag',sets:'3 sets x 5 reps',tip:'Rocky Balboa exercise. Brutally hard. Scale with bent knees until strong enough.'},
+        {name:'Plank with Shoulder Tap',sets:'3 x 20 taps',tip:'Plank position, tap each shoulder alternately. Hips must not rotate.'},
+        {name:'Russian Twist',sets:'3 x 30 reps',tip:'Heels off the floor, weight in hands, rotate fully each side.'},
+        {name:'Hollow Body Hold',sets:'3 x 30 seconds',tip:'Arms overhead, lower back pressed to floor, legs and arms hovering.'}
+      ]
+    },
+    { name:'Beginner Core Starter', level:'Beginner', equipment:'Floor Mat', duration:'20 min', sets:'Straight Sets',
+      exercises:[
+        {name:'Dead Bug',sets:'3 sets x 8 reps each side',tip:'Lower back FLAT on the floor the entire time. Opposite arm and leg.'},
+        {name:'Plank',sets:'3 x 30 seconds',tip:'Straight line from head to toe. Breathe steady. Progress to 60 sec.'},
+        {name:'Glute Bridge',sets:'3 sets x 15 reps',tip:'Squeeze glutes hard at the top. Hold 1 second each rep.'},
+        {name:'Bird Dog',sets:'3 sets x 10 reps each side',tip:'On all fours, extend opposite arm and leg. Keep hips level.'},
+        {name:'Crunch',sets:'3 sets x 20 reps',tip:'Just curl your shoulders up. Lower back stays on the floor.'},
+        {name:'Leg Raise',sets:'3 sets x 12 reps',tip:'Slow descent. Lower back must not arch off the floor.'}
+      ]
+    },
+    { name:'Oblique Shredder', level:'Intermediate', equipment:'Cable · Dumbbell · Mat', duration:'30 min', sets:'Supersets',
+      exercises:[
+        {name:'Cable Wood Chop',sets:'3 sets x 12 reps each side',tip:'High to low rotation. Pivot your back foot. Explosive on the chop.'},
+        {name:'Side Plank',sets:'3 x 30 seconds each side',tip:'Hip up, body straight. Raise top arm for extra difficulty.'},
+        {name:'Bicycle Crunch',sets:'3 sets x 20 reps',tip:'Slow and controlled. Elbow to knee, full rotation, no neck pulling.'},
+        {name:'Dumbbell Side Bend',sets:'3 sets x 15 reps each side',tip:'Stand tall, weight in one hand, lean to the side. Do NOT jerk.'},
+        {name:'Landmine Rotation',sets:'3 sets x 10 reps each side',tip:'Hold end of a barbell, sweep from hip to hip in a wide arc.'},
+        {name:'Star Plank',sets:'2 x 20 seconds each side',tip:'Side plank with top arm and leg raised. Extreme stability demand.'}
+      ]
+    }
+  ]},
+  { id:'full', name:'Full Body', icon:'icon_fullbody.png', workouts:[
+    { name:'P90X Total Synergistics', level:'Intermediate', equipment:'Dumbbells · Pull-Up Bar · Bands', duration:'55 min', sets:'Circuits',
+      exercises:[
+        {name:'Slow Motion 3 & 1 Push-Up',sets:'3 sets x 8 reps',tip:'3 seconds down, 1 second up. Absolutely destroys the chest.'},
+        {name:'Squat Run',sets:'3 sets x 30 seconds',tip:'Squat then sprint in place. Full body blast.'},
+        {name:'Banana Roll',sets:'3 sets x 5 reps',tip:'Hollow body to superman roll. Total core and back activation.'},
+        {name:'Leaning Crescent Lunge',sets:'3 sets x 10 reps each side',tip:'Deep lunge plus an arm balance challenge.'},
+        {name:'Squat X Press',sets:'3 sets x 10 reps',tip:'Squat, then press dumbbells overhead as you rise. Legs and shoulders together.'},
+        {name:'Pull Knee Push-Up',sets:'3 sets x 10 reps',tip:'Start in pull-up position, pull knees to chest, then push up.'},
+        {name:'Lunge Kickback Curl Press',sets:'3 sets x 8 reps each side',tip:'Lunge + rear delt kickback + curl + press. One movement flow.'},
+        {name:'Towel Hop Squat',sets:'3 x 30 seconds',tip:'Hop laterally over a towel in a squat position. Cardio and leg conditioning.'}
+      ]
+    },
+    { name:'Body Beast Total Body', level:'Expert', equipment:'Barbell · Dumbbells · Cables', duration:'60 min', sets:'Giant Sets',
+      exercises:[
+        {name:'Deadlift',sets:'4 sets x 8 reps',tip:'Total posterior chain. The single best full body exercise.'},
+        {name:'Barbell Bench Press',sets:'4 sets x 8 reps',tip:'Upper body push foundation.'},
+        {name:'Barbell Row',sets:'4 sets x 8 reps',tip:'Upper body pull foundation. Balance the bench.'},
+        {name:'Back Squat',sets:'4 sets x 8 reps',tip:'Lower body king. Full depth every rep.'},
+        {name:'Overhead Barbell Press',sets:'3 sets x 10 reps',tip:'Pure shoulder power.'},
+        {name:'Pull-Up',sets:'3 sets x 8 reps',tip:'Wide or neutral grip. Go to full failure on last set.'},
+        {name:'Barbell Curl',sets:'3 sets x 12 reps',tip:'Full ROM. Slow negative.'},
+        {name:'Tricep Pushdown',sets:'3 sets x 12 reps',tip:'Full extension every rep.'}
+      ]
+    },
+    { name:'Cardio Torch HIIT', level:'Intermediate', equipment:'No Equipment', duration:'30 min', sets:'HIIT Intervals',
+      exercises:[
+        {name:'Burpee',sets:'40 sec on / 20 sec rest x 5',tip:'Full push-up at the bottom, jump at the top. Do not cut corners.'},
+        {name:'Jump Squat',sets:'40 sec on / 20 sec rest x 5',tip:'Land softly. Go to full parallel before jumping.'},
+        {name:'Mountain Climber',sets:'40 sec on / 20 sec rest x 5',tip:'Drive knees to chest fast. Keep hips level.'},
+        {name:'Box Jump or Jump Lunge',sets:'40 sec on / 20 sec rest x 5',tip:'Explosive power. Land in a lunge or on the box with soft knees.'},
+        {name:'High Knees',sets:'40 sec on / 20 sec rest x 5',tip:'Pump arms, drive knees above your hip. Sprint pace.'},
+        {name:'Plank to Push-Up',sets:'40 sec on / 20 sec rest x 5',tip:'From forearm plank to full push-up and back. Alternate lead arm.'}
+      ]
+    }
+  ]},
+  { id:'cardio', name:'Cardio', icon:'icon_cardio.png', workouts:[
+    { name:'P90X Plyometrics', level:'Expert', equipment:'No Equipment · Low Box', duration:'60 min', sets:'Circuits',
+      exercises:[
+        {name:'Jump Squat',sets:'30 seconds',tip:'Explosive power. Land softly, absorb with your legs, go straight back down.'},
+        {name:'Run Stance Squat',sets:'30 seconds',tip:'Staggered stance squat. Alternate lead foot each set.'},
+        {name:'Airborne Heisman',sets:'30 seconds',tip:'Lateral hop on one leg. Stabilize. Then hop back.'},
+        {name:'Swing Kick',sets:'30 seconds',tip:'Kick up, balance, control the swing. Full hip extension.'},
+        {name:'Squat Reach Jump',sets:'30 seconds',tip:'Deep squat, reach to floor, jump and reach overhead.'},
+        {name:'Run Stance Switch Kick',sets:'30 seconds',tip:'Switch legs in the air. Land and immediately kick with the other.'},
+        {name:'Double Airborne Heisman',sets:'30 seconds',tip:'Two hops then balance. Harder than it sounds.'},
+        {name:'Circle Run',sets:'30 seconds',tip:'Sprint in a tight circle. 15 sec each direction.'},
+        {name:'Jump Knee Tuck',sets:'30 seconds',tip:'Jump and pull both knees to chest. Explosive hip flexion.'},
+        {name:'Mary Catherine Lunges',sets:'30 seconds',tip:'Jump lunge alternating legs. No pause at the bottom.'}
+      ]
+    },
+    { name:'Metabolic Cardio Blast', level:'Intermediate', equipment:'No Equipment', duration:'25 min', sets:'AMRAP',
+      exercises:[
+        {name:'Burpee',sets:'10 reps',tip:'Full push-up at the bottom, jump at the top. Non-negotiable standards.'},
+        {name:'Sprint in Place',sets:'30 seconds',tip:'Max effort. Pump your arms. Drive your knees.'},
+        {name:'Jump Lunge',sets:'10 reps each side',tip:'Alternate in the air. Land softly each time.'},
+        {name:'Speed Skater',sets:'10 reps each side',tip:'Lateral bound with a cross-behind step. Like a speed skater.'},
+        {name:'Push-Up Tap',sets:'10 reps',tip:'Push-up, then tap each shoulder. Core must resist the rotation.'},
+        {name:'Tuck Jump',sets:'10 reps',tip:'Jump and pull knees to chest. Land and immediately repeat.'}
+      ]
+    },
+    { name:'Low Impact Cardio Burn', level:'Beginner', equipment:'No Equipment', duration:'30 min', sets:'Steady State',
+      exercises:[
+        {name:'March in Place',sets:'3 minutes',tip:'Drive knees high. Pump arms. Stay at a pace you can sustain.'},
+        {name:'Step Touch',sets:'2 minutes',tip:'Side to side step and tap. Keep moving continuously.'},
+        {name:'Standing Bicycle',sets:'2 minutes',tip:'Standing, bring elbow to opposite knee. No jumping.'},
+        {name:'Squat to Tap',sets:'2 minutes',tip:'Squat down, tap the floor, stand up. Slow and controlled.'},
+        {name:'Standing Side Crunch',sets:'2 minutes',tip:'Hands behind head, crunch elbow to knee standing.'},
+        {name:'Repeat Circuit',sets:'3 rounds total',tip:'Go through the full circuit 3 times. Rest 60 seconds between rounds.'}
+      ]
+    }
+  ]},
+  { id:'mobility', name:'Mobility', icon:'icon_mobility.png', workouts:[
+    { name:'P90X X Stretch', level:'Beginner', equipment:'Floor Mat', duration:'57 min', sets:'Hold Based',
+      exercises:[
+        {name:'Chest & Shoulder Stretch',sets:'Hold 30 sec each side',tip:'Arms behind back, clasp hands, lift gently. Feel the chest open.'},
+        {name:'Hip Flexor Lunge Stretch',sets:'Hold 45 sec each side',tip:'Deep lunge, back knee on the mat. Tuck your pelvis under for max hip flexor stretch.'},
+        {name:'Hamstring Floor Stretch',sets:'Hold 45 sec each side',tip:'Seated, reach for one foot. Keep back flat. Do not round.'},
+        {name:'Pigeon Pose',sets:'Hold 60 sec each side',tip:'Front leg bent, back leg extended. Most powerful glute and hip opener.'},
+        {name:'Foam Roll IT Band',sets:'60 seconds each leg',tip:'Slow roll from hip to knee. Pause on tender spots.'},
+        {name:'Cat-Cow Spine Flow',sets:'10 reps',tip:'Match breath to movement. Inhale on cow, exhale on cat.'},
+        {name:'Shoulder Cross Stretch',sets:'Hold 30 sec each side',tip:'Pull arm across chest. Feel the rear delt and mid-back release.'},
+        {name:'Tricep Overhead Stretch',sets:'Hold 30 sec each side',tip:'Arm overhead, hand behind head, gentle push on the elbow.'},
+        {name:'Seated Spinal Twist',sets:'Hold 30 sec each side',tip:'Sit tall, rotate from the thoracic spine. Look over your shoulder.'}
+      ]
+    },
+    { name:'Pre-Workout Activation', level:'Beginner', equipment:'Floor Mat · Band', duration:'15 min', sets:'Dynamic',
+      exercises:[
+        {name:'Band Pull-Apart',sets:'2 x 20 reps',tip:'Arms straight, pull band wide behind you. Activates rear delts before pressing.'},
+        {name:'Hip Circle',sets:'2 x 10 reps each direction',tip:'Circle the hips slowly. Opens up the hip joint before lower body work.'},
+        {name:'Leg Swing',sets:'2 x 15 each direction',tip:'Forward and lateral swings. Dynamic hamstring and hip flexor warmup.'},
+        {name:'Inchworm',sets:'2 x 8 reps',tip:'Hands walk out to push-up position, walk feet back. Total body activation.'},
+        {name:'World Greatest Stretch',sets:'2 x 5 each side',tip:'Lunge, elbow to floor, rotate arm up. Best single mobility drill for full body.'},
+        {name:'Thoracic Rotation',sets:'2 x 10 each side',tip:'On all fours, hand behind head, rotate elbow to ceiling.'}
+      ]
+    }
+  ]}
+];
+
+let currentMuscle = null;
+let currentTargetWorkout = null;
+
+function renderMuscleGrid(){
+  const grid = document.getElementById('muscle-grid');
+  grid.innerHTML = '';
+  TARGET_MUSCLES.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'muscle-card';
+    card.innerHTML = `<div class="mc-icon"><img src="${m.icon}" alt="${m.name}"/></div><div class="mc-name">${m.name}</div><div class="mc-count">${m.workouts.length} WORKOUTS</div>`;
+    card.addEventListener('click', () => showMuscleWorkouts(i));
+    grid.appendChild(card);
+  });
+}
+
+function showMuscleWorkouts(idx){
+  currentMuscle = idx;
+  const m = TARGET_MUSCLES[idx];
+  document.getElementById('target-heading').textContent = m.name.toUpperCase();
+  document.getElementById('muscle-wk-title').textContent = m.name.toUpperCase() + ' WORKOUTS';
+  document.getElementById('muscle-grid-view').style.display = 'none';
+  document.getElementById('muscle-workout-list').style.display = 'block';
+  const list = document.getElementById('twk-list');
+  list.innerHTML = '';
+  m.workouts.forEach((wk, i) => {
+    const card = document.createElement('div');
+    card.className = 'twk-card';
+    card.innerHTML = `
+      <div class="tw-name">${wk.name}</div>
+      <div class="tw-meta">${wk.exercises.length} exercises · ${wk.duration}</div>
+      <div class="tw-tags">
+        <span class="tw-tag orange">${wk.level}</span>
+        <span class="tw-tag">${wk.sets}</span>
+        <span class="tw-tag">${wk.equipment.split(' · ')[0]}</span>
+      </div>`;
+    card.addEventListener('click', () => openTargetWorkout(idx, i));
+    list.appendChild(card);
+  });
+}
+
+function showMuscleGrid(){
+  currentMuscle = null;
+  document.getElementById('target-heading').textContent = 'Pick Your Muscle';
+  document.getElementById('muscle-grid-view').style.display = 'block';
+  document.getElementById('muscle-workout-list').style.display = 'none';
+}
+
+function openTargetWorkout(muscleIdx, workoutIdx){
+  const m = TARGET_MUSCLES[muscleIdx];
+  const wk = m.workouts[workoutIdx];
+  currentTargetWorkout = {muscleIdx, workoutIdx};
+  document.getElementById('td-top-title').textContent = wk.name;
+  document.getElementById('td-muscle').textContent = m.name.toUpperCase();
+  document.getElementById('td-name').textContent = wk.name;
+  document.getElementById('td-meta').textContent = `${wk.exercises.length} exercises · ${wk.duration} · ${wk.equipment}`;
+  const exContainer = document.getElementById('td-exercises');
+  exContainer.innerHTML = '';
+  wk.exercises.forEach((ex, i) => {
+    const card = document.createElement('div');
+    card.className = 'td-ex-card';
+    const ytId = getYTId(ex.name);
+    const watchBtn = ytId ? `<a class="watch-btn" href="https://www.youtube.com/watch?v=${ytId}" target="_blank" rel="noopener noreferrer">&#9654; WATCH</a>` : '';
+    card.innerHTML = `
+      <div class="td-ex-num">EXERCISE ${i+1}</div>
+      <div class="td-ex-name">${ex.name}</div>
+      <div class="td-ex-sets">${ex.sets}</div>
+      <div class="td-ex-tip">${ex.tip}</div>
+      ${watchBtn}`;
+    exContainer.appendChild(card);
+  });
+  document.getElementById('target-detail').style.display = 'block';
+}
+
+function closeTargetDetail(){
+  document.getElementById('target-detail').style.display = 'none';
+}
+
+/* ============ YOUTUBE VIDEO MAP ============ */
+// Maps exercise name (lowercase) to YouTube video ID
+const YT_VIDEOS = {
+  // CHEST
+  'barbell bench press': 'rT7DgCr-3pg',
+  'incline dumbbell press': 'DbFgADa2PL8',
+  'decline barbell press': 'LfyQTbKnDOk',
+  'cable chest fly': 'Iwe6AmxVf7o',
+  'dumbbell pullover': 'FK4rHfGTSqA',
+  'push-up burnout': 'IODxDxX7oi4',
+  'dips (chest focus)': 'yUhB0GHbHJA',
+  'standard push-up': 'IODxDxX7oi4',
+  'wide front pull-up': 'eGo4IYlbE5g',
+  'military push-up': 'IODxDxX7oi4',
+  'reverse grip chin-up': '6zyx46Vpato',
+  'wide fly push-up': 'IODxDxX7oi4',
+  'close grip overhand pull-up': 'eGo4IYlbE5g',
+  'decline push-up': 'IODxDxX7oi4',
+  'heavy bag push-up': 'IODxDxX7oi4',
+  'dumbbell bench press': 'VmB1G1K7v94',
+  'incline cable fly': 'Iwe6AmxVf7o',
+  'pec deck machine': 'Z57CtFmRMxA',
+  'single arm cable crossover': 'XxWcirHIwVo',
+  'push-up with pause': 'IODxDxX7oi4',
+  'dumbbell squeeze press': 'VmB1G1K7v94',
+  'incline barbell press': 'DbFgADa2PL8',
+  'weighted dip': 'yUhB0GHbHJA',
+  'paused bench press': 'rT7DgCr-3pg',
+  // BACK
+  'deadlift': 'XxWcirHIwVo',
+  'wide-grip pull-up': 'eGo4IYlbE5g',
+  'barbell bent-over row': 'vT2GjY_Umpw',
+  'seated cable row': 'GZbfZ033f74',
+  'single arm dumbbell row': 'pYcpY20QaQ8',
+  'lat pulldown': 'CAwf7n6Luuc',
+  'face pull': 'HSoHeSt5VMs',
+  'straight-arm pulldown': 'wFMcSdKCWog',
+  'lawnmower row': 'vT2GjY_Umpw',
+  'two-arm supinated pull-up': 'eGo4IYlbE5g',
+  'heavy pants': 'vT2GjY_Umpw',
+  'switch grip pull-up': 'eGo4IYlbE5g',
+  'corn cob pull-up': 'eGo4IYlbE5g',
+  'towel pull-up': 'eGo4IYlbE5g',
+  't-bar row': 'vT2GjY_Umpw',
+  'chest supported row': 'vT2GjY_Umpw',
+  'seated cable row wide grip': 'GZbfZ033f74',
+  'rack pull': 'XxWcirHIwVo',
+  'dumbbell shrug': 'g6qbq4Lf1FI',
+  'lat pulldown behind neck': 'CAwf7n6Luuc',
+  // LEGS
+  'back squat': 'ultWZbUMPL8',
+  'leg press': 'IZxyjW7EWJY',
+  'walking lunge': 'L8fvypPrzzs',
+  'romanian deadlift': 'JCXUYuzwNrM',
+  'leg curl machine': 'ELOCsoDSmrg',
+  'leg extension': 'YyvSfVjQeL0',
+  'standing calf raise': 'gwLzBJYoWlI',
+  'sissy squat': 'bPOAITGMNUk',
+  'balance lunge': 'L8fvypPrzzs',
+  'calf raise squat': 'gwLzBJYoWlI',
+  'super skater': 'L8fvypPrzzs',
+  'step back lunge': 'L8fvypPrzzs',
+  'alternating side lunge': 'L8fvypPrzzs',
+  'single leg wall squat': 'ultWZbUMPL8',
+  'sumo deadlift': 'U4pFqhpIL38',
+  'hip thrust': 'xDmFkJxPzeM',
+  'bulgarian split squat': 'KHxIcB_-pyQ',
+  'cable pull-through': 'tLQNSR3pQxw',
+  'glute ham raise': 'ELOCsoDSmrg',
+  'single leg deadlift': 'JCXUYuzwNrM',
+  'seated leg curl': 'ELOCsoDSmrg',
+  'front squat': 'IYIBm3EjPX8',
+  'hack squat': 'gOq5-Pnfxqg',
+  'leg press drop set': 'IZxyjW7EWJY',
+  'leg extension burnout': 'YyvSfVjQeL0',
+  'cyclist squat': 'ultWZbUMPL8',
+  // SHOULDERS
+  'overhead barbell press': 'F3QY5vMz_6I',
+  'dumbbell lateral raise': 'FeJMqP4cJXo',
+  'dumbbell front raise': 'sOoBMDXlJL8',
+  'bent-over rear delt fly': 'HSoHeSt5VMs',
+  'arnold press': 'vj2w851ZHRM',
+  'cable upright row': 'B-CMSdMNMko',
+  'seated dumbbell press': 'F3QY5vMz_6I',
+  'in & out bicep curl': 'ykJmrZ5v0Oo',
+  'two arm tricep kickback': 'PFiZPNKTRVQ',
+  'deep swimmer press': 'F3QY5vMz_6I',
+  'full supination curl': 'ykJmrZ5v0Oo',
+  'congdon curl': 'ykJmrZ5v0Oo',
+  'side tri-rise': 'PFiZPNKTRVQ',
+  'seated rear delt machine fly': 'HSoHeSt5VMs',
+  'cable rear delt pull': 'HSoHeSt5VMs',
+  'barbell shrug': 'g6qbq4Lf1FI',
+  // ARMS
+  'barbell curl': 'ykJmrZ5v0Oo',
+  'overhead tricep extension': 'PFiZPNKTRVQ',
+  'incline dumbbell curl': 'ykJmrZ5v0Oo',
+  'skull crusher': '_oSlKPFRgQ0',
+  'concentration curl': 'Jvj2wrIqZMY',
+  'close-grip bench press': 'nEF0bv2FW54',
+  'hammer curl': 'TwD-YGVP4Bk',
+  'tricep pushdown': 'PFiZPNKTRVQ',
+  '21s barbell curl': 'ykJmrZ5v0Oo',
+  'twenty-one curl': 'ykJmrZ5v0Oo',
+  'tricep dip': 'yUhB0GHbHJA',
+  'curl & hammer superset': 'ykJmrZ5v0Oo',
+  'diamond push-up': 'IODxDxX7oi4',
+  'ez-bar curl': 'ykJmrZ5v0Oo',
+  'reverse curl': 'ykJmrZ5v0Oo',
+  'barbell wrist curl': 'TwD-YGVP4Bk',
+  'reverse wrist curl': 'TwD-YGVP4Bk',
+  'farmer carry': 'rt0UBwdJlP8',
+  'dead hang': 'eGo4IYlbE5g',
+  'plate pinch': 'rt0UBwdJlP8',
+  // CORE
+  'in & outs': 'FGUMbj4Yow8',
+  'bicycle': 'FGUMbj4Yow8',
+  'reverse bicycle': 'FGUMbj4Yow8',
+  'crunchy frog': 'FGUMbj4Yow8',
+  'cross-leg wide leg sit-up': 'FGUMbj4Yow8',
+  'fifer scissors': 'FGUMbj4Yow8',
+  'hip rock & raise': 'FGUMbj4Yow8',
+  'v up roll up': 'FGUMbj4Yow8',
+  'oblique v up': 'FGUMbj4Yow8',
+  'leg climb': 'FGUMbj4Yow8',
+  'mason twist': 'FGUMbj4Yow8',
+  'ab wheel rollout': 'HtQAlqnCm1g',
+  'hanging leg raise': 'Pr1ieGZ5ATk',
+  'cable crunch': 'AV5PmePB3HI',
+  'l-sit hold': 'IUZscpCF_Wg',
+  'dragon flag': 'njxBdPSbFLQ',
+  'plank with shoulder tap': 'LEZq7QdaDEY',
+  'russian twist': 'wkD8rjkodUI',
+  'hollow body hold': 'LlDNef_Ztsc',
+  'dead bug': 'FGUMbj4Yow8',
+  'plank': 'pSHjTRCQxIw',
+  'glute bridge': 'xDmFkJxPzeM',
+  'bird dog': 'wiFNA3sqjCA',
+  'crunch': 'Xyd_fa5zoEU',
+  'leg raise': 'Pr1ieGZ5ATk',
+  'cable wood chop': 'pAplQXqHzhA',
+  'side plank': 'LEZq7QdaDEY',
+  'bicycle crunch': 'FGUMbj4Yow8',
+  'dumbbell side bend': 'fHnKTHGTFGo',
+  'landmine rotation': 'pAplQXqHzhA',
+  'star plank': 'LEZq7QdaDEY',
+  // FULL BODY
+  'slow motion 3 & 1 push-up': 'IODxDxX7oi4',
+  'squat run': 'ultWZbUMPL8',
+  'banana roll': 'LlDNef_Ztsc',
+  'leaning crescent lunge': 'L8fvypPrzzs',
+  'squat x press': 'ultWZbUMPL8',
+  'pull knee push-up': 'IODxDxX7oi4',
+  'lunge kickback curl press': 'L8fvypPrzzs',
+  'towel hop squat': 'ultWZbUMPL8',
+  'barbell row': 'vT2GjY_Umpw',
+  'pull-up': 'eGo4IYlbE5g',
+  // CARDIO
+  'jump squat': 'CVaEhXotL7M',
+  'run stance squat': 'ultWZbUMPL8',
+  'airborne heisman': 'CVaEhXotL7M',
+  'swing kick': 'CVaEhXotL7M',
+  'squat reach jump': 'CVaEhXotL7M',
+  'run stance switch kick': 'CVaEhXotL7M',
+  'double airborne heisman': 'CVaEhXotL7M',
+  'circle run': 'CVaEhXotL7M',
+  'jump knee tuck': 'CVaEhXotL7M',
+  'mary catherine lunges': 'L8fvypPrzzs',
+  'burpee': 'TU8QYVW0gDU',
+  'sprint in place': 'CVaEhXotL7M',
+  'jump lunge': 'CVaEhXotL7M',
+  'speed skater': 'CVaEhXotL7M',
+  'push-up tap': 'IODxDxX7oi4',
+  'tuck jump': 'CVaEhXotL7M',
+  'march in place': 'CVaEhXotL7M',
+  'step touch': 'CVaEhXotL7M',
+  'standing bicycle': 'FGUMbj4Yow8',
+  'squat to tap': 'ultWZbUMPL8',
+  'standing side crunch': 'FGUMbj4Yow8',
+  'mountain climber': 'nmwgirgXLYM',
+  'high knees': 'CVaEhXotL7M',
+  'plank to push-up': 'IODxDxX7oi4',
+  'box jump or jump lunge': 'CVaEhXotL7M',
+  // MOBILITY
+  'chest & shoulder stretch': 'x4piMvVCahI',
+  'hip flexor lunge stretch': 'x4piMvVCahI',
+  'hamstring floor stretch': 'x4piMvVCahI',
+  'pigeon pose': 'x4piMvVCahI',
+  'foam roll it band': 'x4piMvVCahI',
+  'cat-cow spine flow': 'x4piMvVCahI',
+  'shoulder cross stretch': 'x4piMvVCahI',
+  'tricep overhead stretch': 'x4piMvVCahI',
+  'seated spinal twist': 'x4piMvVCahI',
+  'band pull-apart': 'HSoHeSt5VMs',
+  'hip circle': 'x4piMvVCahI',
+  'leg swing': 'x4piMvVCahI',
+  'inchworm': 'YIXka3Jl4BU',
+  'world greatest stretch': 'YIXka3Jl4BU',
+  'thoracic rotation': 'x4piMvVCahI',
+  // POSTPARTUM
+  'diaphragmatic breathing': '1WlKyHGxOTY',
+  'cat-cow': '1WlKyHGxOTY',
+  'bird dog (postpartum)': '1WlKyHGxOTY',
+  'supine march': '1WlKyHGxOTY',
+  'pelvic floor kegel': '1WlKyHGxOTY',
+  'glute bridge (postpartum)': 'xDmFkJxPzeM',
+  'heel slide': '1WlKyHGxOTY',
+  'toe taps': '1WlKyHGxOTY',
+  'standing wall push-up': 'IODxDxX7oi4',
+  'clamshell': 'xDmFkJxPzeM',
+  'side-lying leg raise': 'xDmFkJxPzeM',
+  'seated core breathing': '1WlKyHGxOTY',
+  'modified side plank': 'LEZq7QdaDEY',
+  'wall squat': 'ultWZbUMPL8',
+  'step-up (low)': 'L8fvypPrzzs',
+  'bodyweight squat (postpartum)': 'ultWZbUMPL8',
+  'resistance band row': 'GZbfZ033f74',
+  'dumbbell deadlift': 'XxWcirHIwVo',
+  'hip hinge': 'JCXUYuzwNrM',
+  'bird dog with band': 'wiFNA3sqjCA',
+  'single leg glute bridge': 'xDmFkJxPzeM',
+  'lateral band walk': 'xDmFkJxPzeM',
+  'plank (from knees)': 'pSHjTRCQxIw',
+  'push-up (from knees)': 'IODxDxX7oi4',
+  'reverse lunge': 'L8fvypPrzzs',
+  'dumbbell shoulder press': 'F3QY5vMz_6I',
+  'bent-over row (light)': 'vT2GjY_Umpw',
+  // Postpartum exercise name aliases
+  'pelvic floor kegels': '1WlKyHGxOTY',
+  'heel slides': '1WlKyHGxOTY',
+  'supine march': '1WlKyHGxOTY',
+  'cat-cow stretch': '1WlKyHGxOTY',
+  'side-lying leg raise': 'xDmFkJxPzeM',
+  'wall squat': 'ultWZbUMPL8',
+  'step-ups': 'L8fvypPrzzs',
+  'lateral band walks': 'xDmFkJxPzeM',
+  'modified side plank': 'LEZq7QdaDEY',
+  'resistance band rows': 'GZbfZ033f74',
+  'dumbbell deadlifts': 'XxWcirHIwVo',
+  'bodyweight squats': 'ultWZbUMPL8',
+  'hip thrusts': 'xDmFkJxPzeM',
+  'single leg glute bridge': 'xDmFkJxPzeM',
+  'reverse lunges': 'L8fvypPrzzs',
+  'gentle walk': 'x4piMvVCahI',
+  'brisk walk': 'x4piMvVCahI',
+  'brisk walk or light jog': 'x4piMvVCahI',
+  'yoga or stretching': 'x4piMvVCahI',
+  'walk': 'x4piMvVCahI',
+};
+
+function getYTId(exerciseName){
+  return YT_VIDEOS[exerciseName.toLowerCase()] || null;
+}
+
+function openYT(videoId, title){
+  const a = document.createElement('a');
+  a.href = 'https://www.youtube.com/watch?v=' + videoId;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function closeYT(){
+  const modal = document.getElementById('yt-modal');
+  modal.classList.remove('open');
+}
+
+renderMuscleGrid();
+
+/* ============ SIGN OUT ============ */
+document.getElementById('sign-out-btn').addEventListener('click', signOut);
+
+/* ============ INIT ============ */
+if(session){
+  enterApp();
+} else {
+  authScreen.style.display = 'flex';
+  appEl.style.display = 'none';
+}
+</script>
+</body>
+</html>
