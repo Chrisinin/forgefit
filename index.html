@@ -2714,7 +2714,7 @@ function beep(){
   } catch(e){}
 }
 
-syncRemaining();
+try{ syncRemaining(); }catch(e){}
 
 /* ============ TARGET / BODY PARTS ============ */
 const TARGET_MUSCLES = [
@@ -3558,7 +3558,7 @@ function closeYT(){
   modal.classList.remove('open');
 }
 
-renderMuscleGrid();
+try{ renderMuscleGrid(); }catch(e){}
 
 /* ============ SIGN OUT ============ */
 document.getElementById('sign-out-btn').addEventListener('click', signOut);
@@ -4334,7 +4334,7 @@ function setupNutritionInputs() {
   });
 }
 
-setupNutritionInputs();
+try{ setupNutritionInputs(); }catch(e){}
 
 /* ============ PHOTO SCHEDULE ============ */
 function loadPhotoSchedule(){
@@ -4471,7 +4471,7 @@ document.getElementById('photo-file-input').addEventListener('change', function(
 });
 
 // Init schedule status on load
-renderPhotoScheduleStatus();
+try{ renderPhotoScheduleStatus(); }catch(e){}
 
 // Also restore weight/goal inputs from saved nutrition
 (function(){
@@ -4607,8 +4607,8 @@ function checkReminderNow() {
   }
 }
 
-checkReminderNow();
-setInterval(checkReminderNow, 60000);
+try{ checkReminderNow(); }catch(e){}
+try{ setInterval(checkReminderNow, 60000); }catch(e){}
 
 /* ============ BODY WEIGHT TRACKER ============ */
 function logBodyWeight() {
