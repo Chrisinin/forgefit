@@ -990,6 +990,11 @@
             <div class="name" id="prof-name">Athlete</div>
             <div class="email" id="prof-email">demo@forgefit.app</div>
           </div>
+          <button onclick="showNameEdit()" style="background:rgba(255,69,0,0.15);border:1px solid rgba(255,69,0,0.4);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:900;letter-spacing:0.1em;color:#ff7a3d;cursor:pointer">EDIT</button>
+        </div>
+        <div id="prof-name-edit" style="display:none;margin-top:12px;gap:8px;align-items:center">
+          <input id="prof-name-input" type="text" placeholder="Your first name" style="flex:1;background:#1a1a20;border:1.5px solid rgba(255,69,0,0.4);border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:#fff;outline:none"/>
+          <button onclick="saveName()" style="background:#ff4500;border:none;border-radius:10px;padding:10px 16px;font-size:11px;font-weight:900;letter-spacing:0.1em;color:#fff;cursor:pointer">SAVE</button>
         </div>
         <div class="profile-pills">
           <div class="tag">Muscle</div>
@@ -2065,11 +2070,14 @@ function doSignIn(){
   let accounts = {};
   try { accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}'); } catch(e){}
   // Always include demo
-  accounts['demo@forgefit.app'] = 'demo';
-  if(accounts[email] && accounts[email] === pass){
+  accounts['demo@forgefit.app'] = { pass: 'demo', name: 'Admin' };
+  const acct = accounts[email];
+  const acctPass = acct ? (typeof acct === 'object' ? acct.pass : acct) : null;
+  const acctName = acct && typeof acct === 'object' && acct.name ? acct.name : null;
+  if(acctPass && acctPass === pass){
     authError.textContent = '';
     const existingGender = (function(){ try { const s = JSON.parse(localStorage.getItem('ff_session')||'{}'); return s.gender||'male'; } catch(e){ return 'male'; } })();
-    const sess = { email, name: email.split('@')[0], loggedAt: Date.now(), gender: existingGender };
+    const sess = { email, name: acctName || email.split('@')[0], loggedAt: Date.now(), gender: existingGender };
     if(remember){
       try { localStorage.setItem(SESSION_KEY, JSON.stringify(sess)); } catch(e){}
       try { localStorage.setItem('ff_remember', JSON.stringify({email, pass})); } catch(e){}
@@ -2083,6 +2091,38 @@ function doSignIn(){
     authError.textContent = 'Wrong credentials. Try demo@forgefit.app / demo and get to work.';
   }
 }
+
+function showNameEdit() {
+  const row = document.getElementById('prof-name-edit');
+  const input = document.getElementById('prof-name-input');
+  if (!row) return;
+  row.style.display = 'flex';
+  if (input) { input.value = session ? (session.name || '') : ''; input.focus(); }
+}
+function saveName() {
+  const input = document.getElementById('prof-name-input');
+  const newName = input ? input.value.trim() : '';
+  if (!newName || !session) return;
+  session.name = newName;
+  // Update session storage
+  try { localStorage.setItem('ff_session', JSON.stringify(session)); } catch(e) {}
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+  // Also update the stored account so it persists after sign-out
+  try {
+    let accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}');
+    if (accounts[session.email]) {
+      if (typeof accounts[session.email] === 'object') accounts[session.email].name = newName;
+      else accounts[session.email] = { pass: accounts[session.email], name: newName };
+      localStorage.setItem('ff_accounts', JSON.stringify(accounts));
+    }
+  } catch(e) {}
+  // Refresh UI
+  populateUser();
+  document.getElementById('user-name').textContent = newName;
+  document.getElementById('prof-name-edit').style.display = 'none';
+}
+window.showNameEdit = showNameEdit;
+window.saveName = saveName;
 
 function setProfileGender(g) {
   if (!session) return;
@@ -2131,7 +2171,7 @@ function doSignUp() {
   let accounts = {};
   try { accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}'); } catch(e) {}
   if (accounts[email]) { err.textContent = 'An account with that email already exists.'; return; }
-  accounts[email] = pass;
+  accounts[email] = { pass, name };
   try { localStorage.setItem('ff_accounts', JSON.stringify(accounts)); } catch(e) {}
 
   // Sign in immediately
