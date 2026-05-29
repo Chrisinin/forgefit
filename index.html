@@ -533,6 +533,14 @@
   .cal-total-card .v{font-size:36px;font-weight:900;color:#ff4500;letter-spacing:-0.03em}
   .cal-total-card .l{font-size:11px;color:#ff7a3d;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
 
+  /* ---------- PHOTO SCHEDULE ---------- */
+  .photo-sched-btn{
+    text-align:center;padding:9px 6px;border-radius:10px;border:1px solid #2a2a32;
+    font-size:11px;font-weight:900;letter-spacing:0.06em;text-transform:uppercase;
+    color:#9a9aa3;background:#0b0b0d;cursor:pointer;transition:all .15s;
+  }
+  .photo-sched-btn.active{border-color:#ff4500;color:#ff4500;background:#1a0800;}
+
   /* ---------- PROGRESS PHOTOS ---------- */
   .photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
   .photo-thumb{
@@ -819,9 +827,21 @@
       </div>
 
       <div class="section-title">PROGRESS PHOTOS</div>
+
+      <!-- Photo Schedule Selector -->
+      <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:#9a9aa3;text-transform:uppercase;margin-bottom:10px">CHECK-IN SCHEDULE</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px" id="photo-schedule-row">
+          <div class="photo-sched-btn active" data-sched="weekly" onclick="setPhotoSchedule('weekly')">Weekly</div>
+          <div class="photo-sched-btn" data-sched="biweekly" onclick="setPhotoSchedule('biweekly')">Bi-Weekly</div>
+          <div class="photo-sched-btn" data-sched="monthly" onclick="setPhotoSchedule('monthly')">Monthly</div>
+        </div>
+        <div id="photo-checkin-status" style="font-size:13px;color:#ff7a3d;font-weight:700;text-align:center;padding:6px 0"></div>
+      </div>
+
       <button class="add-photo-btn" id="add-photo-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        ADD PHOTO
+        ADD PHOTO NOW
       </button>
       <input type="file" id="photo-file-input" accept="image/*" style="display:none" />
       <div class="photos-grid" id="photos-grid"></div>
@@ -837,6 +857,28 @@
     <div class="container">
 
       <div class="section-title">NUTRITION</div>
+
+      <!-- Weight + Goal Calculator -->
+      <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:#9a9aa3;text-transform:uppercase;margin-bottom:12px">YOUR STATS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">WEIGHT (lbs)</div>
+            <input type="number" id="user-weight-input" min="50" max="500" placeholder="e.g. 185" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
+          </div>
+          <div>
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">GOAL</div>
+            <select id="user-goal-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
+              <option value="lose">Lose Fat</option>
+              <option value="maintain">Maintain</option>
+              <option value="build">Build Muscle</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="calcNutritionFromWeight()" style="width:100%;background:#ff4500;border:none;border-radius:10px;padding:12px;color:#fff;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">CALCULATE MY MACROS</button>
+        <div id="nutrition-calc-note" style="font-size:11px;color:#9a9aa3;text-align:center;margin-top:8px"></div>
+      </div>
+
       <div class="cal-total-card">
         <div class="v" id="nutrition-cal-total">2000</div>
         <div class="l">Daily Calories</div>
@@ -3405,6 +3447,59 @@ var MEAL_MACROS = {
   Snack:     ['~25g P · ~10g C · ~8g F', '~20g P · ~30g C · ~6g F', '~5g P · ~25g C · ~8g F']
 };
 
+/* ============ WEIGHT-BASED MACRO CALCULATOR ============ */
+function calcNutritionFromWeight(){
+  var weightEl = document.getElementById('user-weight-input');
+  var goalEl = document.getElementById('user-goal-input');
+  var noteEl = document.getElementById('nutrition-calc-note');
+  var weight = parseFloat(weightEl.value);
+  if(!weight || weight < 50 || weight > 500){
+    noteEl.style.color = '#ff4500';
+    noteEl.textContent = 'Please enter a valid weight between 50 and 500 lbs.';
+    return;
+  }
+  var goal = goalEl.value;
+  var leanMass = weight * 0.85; // estimate ~85% lean
+  var protein, carbs, fats, cals;
+  if(goal === 'lose'){
+    // Cut: 10-12 cal/lb, high protein, lower carbs
+    cals = Math.round(weight * 11);
+    protein = Math.round(weight * 1.0);
+    fats = Math.round(weight * 0.3);
+    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
+    noteEl.style.color = '#9a9aa3';
+    noteEl.textContent = 'Fat loss plan: moderate deficit, high protein to preserve muscle.';
+  } else if(goal === 'build'){
+    // Bulk: 16-18 cal/lb, high protein, high carbs
+    cals = Math.round(weight * 17);
+    protein = Math.round(weight * 1.0);
+    fats = Math.round(weight * 0.4);
+    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
+    noteEl.style.color = '#9a9aa3';
+    noteEl.textContent = 'Muscle building plan: calorie surplus with high carbs for fuel.';
+  } else {
+    // Maintain: 14-15 cal/lb
+    cals = Math.round(weight * 14);
+    protein = Math.round(weight * 0.85);
+    fats = Math.round(weight * 0.35);
+    carbs = Math.round((cals - (protein * 4) - (fats * 9)) / 4);
+    noteEl.style.color = '#9a9aa3';
+    noteEl.textContent = 'Maintenance plan: balanced macros to sustain current physique.';
+  }
+  if(carbs < 0) carbs = 0;
+  var n = { protein: protein, carbs: carbs, fats: fats, weight: weight, goal: goal };
+  saveNutrition(n);
+  // Update inputs and display
+  document.getElementById('macro-protein-input').value = protein;
+  document.getElementById('macro-carbs-input').value = carbs;
+  document.getElementById('macro-fats-input').value = fats;
+  document.getElementById('macro-protein-val').textContent = protein + 'g';
+  document.getElementById('macro-carbs-val').textContent = carbs + 'g';
+  document.getElementById('macro-fats-val').textContent = fats + 'g';
+  document.getElementById('nutrition-cal-total').textContent = cals;
+}
+window.calcNutritionFromWeight = calcNutritionFromWeight;
+
 function loadNutrition() {
   try {
     var raw = localStorage.getItem('ff_nutrition');
@@ -3460,6 +3555,54 @@ function setupNutritionInputs() {
 }
 
 setupNutritionInputs();
+
+/* ============ PHOTO SCHEDULE ============ */
+function loadPhotoSchedule(){
+  try { var r = localStorage.getItem('ff_photo_schedule'); if(r) return JSON.parse(r); } catch(e){}
+  return { schedule: 'weekly', lastPhoto: null };
+}
+function savePhotoSchedule(s){
+  try { localStorage.setItem('ff_photo_schedule', JSON.stringify(s)); } catch(e){}
+}
+function setPhotoSchedule(sched){
+  var s = loadPhotoSchedule();
+  s.schedule = sched;
+  savePhotoSchedule(s);
+  document.querySelectorAll('.photo-sched-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.sched === sched);
+  });
+  renderPhotoScheduleStatus();
+}
+window.setPhotoSchedule = setPhotoSchedule;
+function renderPhotoScheduleStatus(){
+  var s = loadPhotoSchedule();
+  var statusEl = document.getElementById('photo-checkin-status');
+  if(!statusEl) return;
+  var days = s.schedule === 'weekly' ? 7 : s.schedule === 'biweekly' ? 14 : 30;
+  var label = s.schedule === 'weekly' ? 'Weekly' : s.schedule === 'biweekly' ? 'Bi-Weekly' : 'Monthly';
+  if(!s.lastPhoto){
+    statusEl.textContent = label + ' check-ins active. Add your first photo to start the clock.';
+    return;
+  }
+  var last = new Date(s.lastPhoto);
+  var next = new Date(last.getTime() + days * 86400000);
+  var now = new Date();
+  var diff = Math.ceil((next - now) / 86400000);
+  if(diff <= 0){
+    statusEl.style.color = '#ff4500';
+    statusEl.textContent = 'Check-in overdue! Time to take your progress photo.';
+  } else if(diff === 1){
+    statusEl.style.color = '#ff7a3d';
+    statusEl.textContent = 'Next check-in: Tomorrow!';
+  } else {
+    statusEl.style.color = '#ff7a3d';
+    statusEl.textContent = 'Next check-in in ' + diff + ' days  (' + next.toLocaleDateString() + ')';
+  }
+  // Highlight active schedule button
+  document.querySelectorAll('.photo-sched-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.sched === s.schedule);
+  });
+}
 
 /* ============ PROGRESS PHOTOS ============ */
 function loadPhotos() {
@@ -3536,11 +3679,26 @@ document.getElementById('photo-file-input').addEventListener('change', function(
     var dateStr = now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     photos.push({ data: ev.target.result, date: dateStr });
     savePhotos(photos);
+    // Record this as the last check-in date
+    var ps = loadPhotoSchedule();
+    ps.lastPhoto = new Date().toISOString();
+    savePhotoSchedule(ps);
     renderPhotos();
+    renderPhotoScheduleStatus();
   };
   reader.readAsDataURL(file);
   e.target.value = '';
 });
+
+// Init schedule status on load
+renderPhotoScheduleStatus();
+
+// Also restore weight/goal inputs from saved nutrition
+(function(){
+  var n = loadNutrition();
+  if(n.weight){ document.getElementById('user-weight-input').value = n.weight; }
+  if(n.goal){ document.getElementById('user-goal-input').value = n.goal; }
+})();
 
 /* ============ BADGES ============ */
 var BADGES = [
