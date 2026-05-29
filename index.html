@@ -720,6 +720,7 @@
         </div>
         <button type="button" class="btn-primary" onclick="doSignIn()">FORGE IN</button>
         <div id="auth-error" class="auth-error"></div>
+        <div style="text-align:center;margin-top:10px"><span onclick="showForgotPanel(true)" style="font-size:12px;color:#ff7a3d;font-weight:700;cursor:pointer;letter-spacing:0.05em">FORGOT PASSWORD?</span></div>
         
       </form>
     </div>
@@ -746,9 +747,24 @@
             <div class="gender-btn" data-gender="female" onclick="selectSignupGender('female')"><span style="font-size:20px">♀</span><span>FEMALE</span></div>
           </div>
         </div>
+        <div class="field">
+          <label for="su-pin">Recovery PIN (4 digits)</label>
+          <input id="su-pin" type="number" placeholder="e.g. 1234" maxlength="4" style="-moz-appearance:textfield" />
+          <div style="font-size:11px;color:#9a9aa3;margin-top:4px">Used to reset your password if forgotten</div>
+        </div>
         <button type="button" class="btn-primary" onclick="doSignUp()" style="margin-top:8px">CREATE ACCOUNT</button>
         <div id="signup-error" class="auth-error"></div>
       </form>
+    </div>
+    <!-- Forgot Password Panel -->
+    <div id="forgot-panel" style="display:none">
+      <div style="font-size:13px;font-weight:700;color:#9a9aa3;margin-bottom:16px">Enter your email and recovery PIN to reset your password.</div>
+      <div class="field"><label>Email</label><input id="fp-email" type="email" placeholder="you@email.com" /></div>
+      <div class="field"><label>Recovery PIN</label><input id="fp-pin" type="number" placeholder="4-digit PIN" /></div>
+      <div class="field"><label>New Password</label><input id="fp-newpass" type="password" placeholder="New password" /></div>
+      <button type="button" class="btn-primary" onclick="doResetPass()">RESET PASSWORD</button>
+      <div id="fp-error" class="auth-error"></div>
+      <div style="text-align:center;margin-top:12px"><span onclick="showForgotPanel(false)" style="font-size:13px;color:#ff7a3d;font-weight:700;cursor:pointer">Back to Sign In</span></div>
     </div>
   </div>
 </div>
@@ -876,6 +892,22 @@
       </button>
       <input type="file" id="photo-file-input" accept="image/*" style="display:none" />
       <div class="photos-grid" id="photos-grid"></div>
+
+      <div class="section-title">BODY WEIGHT</div>
+      <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-end">
+          <div style="flex:1">
+            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">LOG WEIGHT (lbs)</div>
+            <input type="number" id="bw-input" min="50" max="500" placeholder="e.g. 185" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
+          </div>
+          <button onclick="logBodyWeight()" style="background:#ff4500;border:none;border-radius:10px;padding:11px 18px;font-size:12px;font-weight:900;letter-spacing:0.08em;color:#fff;cursor:pointer;flex-shrink:0">LOG</button>
+        </div>
+        <div id="bw-chart-wrap" style="position:relative;height:80px;margin-bottom:8px"></div>
+        <div id="bw-latest" style="font-size:12px;color:#ff7a3d;font-weight:700;text-align:center"></div>
+      </div>
+
+      <div class="section-title">WORKOUT HISTORY</div>
+      <div id="workout-history-list" style="margin-bottom:14px"></div>
 
       <div class="section-title">ACHIEVEMENTS</div>
       <div class="badges-grid" id="badges-grid"></div>
@@ -2014,6 +2046,37 @@ const PROGRAMS = [
         {name:'Bird Dog', sets:'2 x 10 reps each side', tip:'Your core foundation. Return to it always.'}
       ]}
     ]
+  },
+  {
+    name:'HIIT Factory', goal:'Fat Loss', difficulty:'Intermediate', duration:'6 Weeks', days:'4 Days/Week', gender:'any',
+    about:'Pure high intensity interval training — no equipment, no excuses. Every session is 25-35 minutes of maximum effort intervals designed to torch fat, spike your metabolism, and build serious cardio endurance. Do it anywhere.',
+    equipment:['Floor Space','Jump Rope (optional)'],
+    schedule:[
+      {day:'Mon', name:'Tabata Blitz', type:'20 sec on / 10 sec rest x 8 rounds each', exercises:[
+        {name:'Burpee', sets:'8 rounds x 20 sec', tip:'Full push-up at the bottom, jump at the top. All out every round.'},
+        {name:'Jump Squat', sets:'8 rounds x 20 sec', tip:'Hit the floor on every rep. Explode up. Land soft.'},
+        {name:'Mountain Climber', sets:'8 rounds x 20 sec', tip:'Sprint pace. Hips stay low. Drive knees hard.'},
+        {name:'High Knees', sets:'8 rounds x 20 sec', tip:'Pump arms. Drive knees above hip height. Max speed.'}
+      ]},
+      {day:'Tue', name:'EMOM Power', type:'Every Minute On the Minute — 20 min', exercises:[
+        {name:'Jump Squat', sets:'Odd minutes: 15 reps', tip:'First 15 seconds work, rest the remainder. Record your time.'},
+        {name:'Push-Up', sets:'Even minutes: 15 reps', tip:'Chest to floor every rep. If you finish early, rest the minute.'},
+        {name:'Sprint', sets:'Last 5 minutes: 30 sec all-out', tip:'Empty the tank. Sprint pace. 30 on / 30 off.'}
+      ]},
+      {day:'Thu', name:'Cardio Ladder', type:'Ascending reps — minimal rest', exercises:[
+        {name:'Burpee', sets:'Ladder: 1-2-3-4-5-4-3-2-1', tip:'Climb the ladder and back down. No rest between rungs.'},
+        {name:'Jump Squat', sets:'Ladder: 2-4-6-8-10-8-6-4-2', tip:'Double the burpees. Keep form tight even when burning.'},
+        {name:'Mountain Climber', sets:'10 reps between each rung', tip:'This is your active rest. Slow and controlled.'},
+        {name:'Tuck Jump', sets:'5 reps to finish each rung', tip:'Knees to chest. Land soft. Repeat immediately.'}
+      ]},
+      {day:'Sat', name:'AMRAP Inferno', type:'As Many Rounds As Possible — 25 min', exercises:[
+        {name:'Burpee', sets:'5 reps per round', tip:'Full extension at the top. No half reps.'},
+        {name:'Jump Squat', sets:'10 reps per round', tip:'Deep squat. Explosive jump. Count every one.'},
+        {name:'Push-Up', sets:'10 reps per round', tip:'Chest touches floor. Lockout at top.'},
+        {name:'High Knees', sets:'20 reps per round', tip:'Each knee = 1 rep. Fast pace.'},
+        {name:'Tuck Jump', sets:'5 reps per round', tip:'Knees to chest. The hardest movement — earn it.'}
+      ]}
+    ]
   }
 ];
 
@@ -2161,6 +2224,7 @@ function doSignUp() {
   const name  = document.getElementById('su-name').value.trim();
   const email = document.getElementById('su-email').value.trim().toLowerCase();
   const pass  = document.getElementById('su-password').value;
+  const pin   = (document.getElementById('su-pin').value || '').trim();
   const err   = document.getElementById('signup-error');
 
   if (!name) { err.textContent = 'Enter your name.'; return; }
@@ -2171,7 +2235,7 @@ function doSignUp() {
   let accounts = {};
   try { accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}'); } catch(e) {}
   if (accounts[email]) { err.textContent = 'An account with that email already exists.'; return; }
-  accounts[email] = { pass, name };
+  accounts[email] = { pass, name, pin: pin || '' };
   try { localStorage.setItem('ff_accounts', JSON.stringify(accounts)); } catch(e) {}
 
   // Sign in immediately
@@ -3565,7 +3629,10 @@ function renderSessionExercise() {
   html += '<div class="ws-ex-sets">' + escapeHTML(ex.sets) + '</div>';
   html += '<div class="ws-set-row" id="ws-set-row">';
   for (var i = 0; i < numSets; i++) {
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">';
     html += '<div class="ws-set-circle" data-set="' + i + '">' + (i + 1) + '</div>';
+    html += '<input class="ws-weight-input" data-set="' + i + '" type="number" placeholder="lbs" min="0" max="999" style="width:42px;background:#1a1a20;border:1px solid #2a2a32;border-radius:6px;padding:3px 4px;font-size:11px;font-weight:700;color:#ff7a3d;text-align:center;-moz-appearance:textfield" />';
+    html += '</div>';
   }
   html += '</div>';
   if (ex.tip) {
@@ -3724,9 +3791,24 @@ function closeWorkoutSession(logComplete) {
     var todayKey = dateKey(new Date());
     state.completedDays[todayKey] = true;
     saveState();
+    // Save workout history
+    try {
+      var hist = JSON.parse(localStorage.getItem('ff_history') || '[]');
+      // Collect weight logs from set inputs
+      var setWeights = [];
+      document.querySelectorAll('.ws-weight-input').forEach(function(inp) {
+        var v = inp.value.trim();
+        if (v) setWeights.push(parseFloat(v));
+      });
+      hist.unshift({ name: wsWorkoutName, date: new Date().toLocaleDateString(), duration: fmt(wsElapsedSeconds), sets: wsSetsDone, weights: setWeights });
+      if (hist.length > 50) hist = hist.slice(0, 50);
+      localStorage.setItem('ff_history', JSON.stringify(hist));
+    } catch(e) {}
     renderToday();
     renderProgress();
     renderBadges();
+    renderBodyWeight();
+    renderWorkoutHistory();
   }
 }
 
@@ -4190,6 +4272,129 @@ function checkReminderNow() {
 checkReminderNow();
 setInterval(checkReminderNow, 60000);
 
+/* ============ BODY WEIGHT TRACKER ============ */
+function logBodyWeight() {
+  var val = parseFloat(document.getElementById('bw-input').value);
+  if (!val || val < 50 || val > 500) return;
+  try {
+    var log = JSON.parse(localStorage.getItem('ff_weight_log') || '[]');
+    log.push({ w: val, d: new Date().toLocaleDateString() });
+    if (log.length > 60) log = log.slice(-60);
+    localStorage.setItem('ff_weight_log', JSON.stringify(log));
+  } catch(e) {}
+  document.getElementById('bw-input').value = '';
+  renderBodyWeight();
+}
+window.logBodyWeight = logBodyWeight;
+
+function renderBodyWeight() {
+  var wrap = document.getElementById('bw-chart-wrap');
+  var latest = document.getElementById('bw-latest');
+  if (!wrap) return;
+  var log = [];
+  try { log = JSON.parse(localStorage.getItem('ff_weight_log') || '[]'); } catch(e) {}
+  if (!log.length) { wrap.innerHTML = '<div style="text-align:center;font-size:12px;color:#5a5a62;padding:20px 0">No entries yet. Log your first weight above.</div>'; if(latest) latest.textContent=''; return; }
+  var last = log[log.length-1];
+  if (latest) latest.textContent = 'Latest: ' + last.w + ' lbs (' + last.d + ')';
+  // Draw simple SVG chart
+  var pts = log.slice(-20);
+  var vals = pts.map(function(p){return p.w;});
+  var minV = Math.min.apply(null,vals), maxV = Math.max.apply(null,vals);
+  var range = maxV - minV || 1;
+  var W = wrap.clientWidth || 300, H = 70;
+  var coords = pts.map(function(p,i){
+    var x = (i/(pts.length-1||1))*(W-20)+10;
+    var y = H - ((p.w-minV)/range)*(H-16)+4;
+    return x+','+y;
+  }).join(' ');
+  wrap.innerHTML = '<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
+    '<polyline points="'+coords+'" fill="none" stroke="#ff4500" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+    pts.map(function(p,i){
+      var x=(i/(pts.length-1||1))*(W-20)+10;
+      var y=H-((p.w-minV)/range)*(H-16)+4;
+      return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="#ff4500"/>';
+    }).join('')+
+    '</svg>';
+}
+
+/* ============ WORKOUT HISTORY ============ */
+function renderWorkoutHistory() {
+  var el = document.getElementById('workout-history-list');
+  if (!el) return;
+  var hist = [];
+  try { hist = JSON.parse(localStorage.getItem('ff_history') || '[]'); } catch(e) {}
+  if (!hist.length) {
+    el.innerHTML = '<div style="text-align:center;font-size:12px;color:#5a5a62;padding:16px;background:#141418;border-radius:12px">No workouts logged yet. Complete a session to see your history.</div>';
+    return;
+  }
+  el.innerHTML = hist.slice(0,15).map(function(h) {
+    var wt = h.weights && h.weights.length ? ' &middot; Avg ' + Math.round(h.weights.reduce(function(a,b){return a+b;},0)/h.weights.length) + ' lbs' : '';
+    return '<div style="background:#141418;border:1px solid #1f1f25;border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">'+
+      '<div>'+
+        '<div style="font-size:13px;font-weight:900;letter-spacing:-0.01em">'+h.name+'</div>'+
+        '<div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-top:2px">'+h.date+' &middot; '+h.sets+' sets &middot; '+h.duration+wt+'</div>'+
+      '</div>'+
+      '<div style="font-size:20px">&#9989;</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ============ PASSWORD RESET ============ */
+function showForgotPanel(show) {
+  var signinPanel = document.getElementById('signin-panel');
+  var forgotPanel = document.getElementById('forgot-panel');
+  var signupPanel = document.getElementById('signup-panel');
+  if (!forgotPanel) return;
+  if (show) {
+    if (signinPanel) signinPanel.style.display = 'none';
+    if (signupPanel) signupPanel.style.display = 'none';
+    forgotPanel.style.display = 'block';
+  } else {
+    forgotPanel.style.display = 'none';
+    if (signinPanel) signinPanel.style.display = 'block';
+  }
+}
+window.showForgotPanel = showForgotPanel;
+
+function doResetPass() {
+  var email = (document.getElementById('fp-email').value||'').trim().toLowerCase();
+  var pin = (document.getElementById('fp-pin').value||'').trim();
+  var newpass = (document.getElementById('fp-newpass').value||'').trim();
+  var err = document.getElementById('fp-error');
+  if (!email || !pin || !newpass) { err.textContent = 'Fill in all fields.'; return; }
+  if (newpass.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  try {
+    var accounts = JSON.parse(localStorage.getItem('ff_accounts') || '{}');
+    var acct = accounts[email];
+    if (!acct) { err.textContent = 'No account found for that email.'; return; }
+    var storedPin = typeof acct === 'object' ? (acct.pin || '') : '';
+    if (!storedPin) { err.textContent = 'No recovery PIN set for this account.'; return; }
+    if (String(storedPin) !== String(pin)) { err.textContent = 'Incorrect PIN.'; return; }
+    if (typeof acct === 'object') acct.pass = newpass;
+    else accounts[email] = { pass: newpass, name: email.split('@')[0], pin: pin };
+    localStorage.setItem('ff_accounts', JSON.stringify(accounts));
+    err.style.color = '#4caf50';
+    err.textContent = 'Password reset! You can now sign in.';
+    setTimeout(function(){ showForgotPanel(false); err.style.color=''; err.textContent=''; }, 2000);
+  } catch(e) { err.textContent = 'Something went wrong. Try again.'; }
+}
+window.doResetPass = doResetPass;
+
+/* ============ PUSH NOTIFICATION IMPROVEMENT ============ */
+function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+// Request permission on first reminder enable (already handled) + on app load if enabled
+(function(){
+  var r = loadReminder ? loadReminder() : null;
+  if (r && r.enabled && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+})();
+
 /* ============ PATCH enterApp TO RENDER NEW FEATURES ============ */
 var _origEnterApp = enterApp;
 window.enterApp = function() {
@@ -4198,6 +4403,8 @@ window.enterApp = function() {
   renderPhotos();
   renderBadges();
   renderReminder();
+  renderBodyWeight();
+  renderWorkoutHistory();
 };
 
 /* ============ INIT ============ */
