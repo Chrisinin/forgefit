@@ -4343,13 +4343,16 @@ function renderNutrition() {
 function setupNutritionInputs() {
   ['protein','carbs','fats'].forEach(function(macro) {
     var input = document.getElementById('macro-' + macro + '-input');
+    if(!input) return;
     input.addEventListener('input', function() {
       var n = loadNutrition();
       var val = parseInt(input.value, 10) || 0;
       n[macro] = val;
       saveNutrition(n);
-      document.getElementById('macro-' + macro + '-val').textContent = val + 'g';
-      document.getElementById('nutrition-cal-total').textContent = calcCalories(n);
+      var valEl = document.getElementById('macro-' + macro + '-val');
+      if(valEl) valEl.textContent = val + 'g';
+      var calEl = document.getElementById('nutrition-cal-total');
+      if(calEl) calEl.textContent = calcCalories(n);
     });
   });
 }
