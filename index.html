@@ -2307,6 +2307,7 @@ function showView(id){
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.view === id);
   });
+  if(id === 'view-target') try{ renderMuscleGrid(); }catch(e){}
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav-item').forEach(n => {
