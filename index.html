@@ -4291,14 +4291,8 @@ function generateMealIdeas(){
       '</div>';
   }
 
-  var html = '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:10px">TODAY';
-  html += "'S MEAL PLAN</div>";
-  html += mealCard('\uD83C\uDF05','Breakfast', b);
-  html += mealCard('\uD83E\uDD57','Lunch', l);
-  html += mealCard('\uD83C\uDF7D\uFE0F','Dinner', d);
-  html += mealCard('\uD83C\uDF4E','Snack', s);
-  html += '<div style="font-size:11px;color:#6a6a75;text-align:center;margin-top:8px">Tap Generate again for a new plan</div>';
-  out.innerHTML = html;
+  var header = '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:10px">TODAY&#39;S MEAL PLAN</div>';
+  out.innerHTML = header + mealCard('\uD83C\uDF05','Breakfast', b) + mealCard('\uD83E\uDD57','Lunch', l) + mealCard('\uD83C\uDF7D\uFE0F','Dinner', d) + mealCard('\uD83C\uDF4E','Snack', s) + '<div style="font-size:11px;color:#6a6a75;text-align:center;margin-top:8px">Tap Generate again for a new plan</div>';
 }
 window.generateMealIdeas = generateMealIdeas;
 
@@ -4771,6 +4765,18 @@ window.enterApp = function() {
   renderWorkoutHistory();
   loadAllergens();
 };
+
+/* ============ LOAD REMEMBERED CREDENTIALS ============ */
+(function(){
+  try {
+    var r = localStorage.getItem('ff_remember');
+    if(r){
+      var creds = JSON.parse(r);
+      if(creds.email) document.getElementById('email').value = creds.email;
+      if(creds.pass) document.getElementById('password').value = creds.pass;
+    }
+  } catch(e){}
+})();
 
 /* ============ INIT ============ */
 if(session){
