@@ -442,13 +442,18 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .ws-pause-btn{
-    background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.13);
-    border-radius:10px;padding:7px 14px;font-size:11px;font-weight:900;
-    letter-spacing:0.12em;text-transform:uppercase;color:#e0e0e8;cursor:pointer;
-    transition:all .15s;flex-shrink:0;
+    width:100%;padding:14px;border-radius:14px;font-size:13px;font-weight:900;
+    letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;
+    transition:all .18s;margin-top:12px;margin-bottom:4px;
+    background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);
+    color:#c0c0cc;display:flex;align-items:center;justify-content:center;gap:8px;
   }
-  .ws-pause-btn:active{background:rgba(255,255,255,0.14)}
-  .ws-pause-btn.paused{background:rgba(255,69,0,0.18);border-color:rgba(255,69,0,0.5);color:#ff7a3d}
+  .ws-pause-btn:active{opacity:0.75;transform:scale(0.98)}
+  .ws-pause-btn.paused{
+    background:linear-gradient(135deg,rgba(255,69,0,0.25),rgba(255,122,61,0.15));
+    border-color:rgba(255,69,0,0.6);color:#ff7a3d;
+    box-shadow:0 0 20px rgba(255,69,0,0.2);
+  }
   /* Paused overlay banner */
   #ws-paused-banner{
     display:none;position:sticky;top:58px;z-index:10;
@@ -1051,7 +1056,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </div>
     <div class="ws-title" id="ws-title">Workout</div>
-    <button class="ws-pause-btn" id="ws-pause-btn">&#9646;&#9646; PAUSE</button>
   </div>
   <div id="ws-paused-banner">&#9646;&#9646; WORKOUT PAUSED — TAP RESUME TO CONTINUE</div>
   <div class="ws-body" id="ws-body">
@@ -3274,9 +3278,6 @@ function openWorkoutSession(exercises, workoutName, programId, dayIndex) {
   wsDayIndex = dayIndex;
   wsIsPaused = false;
   document.getElementById('ws-title').textContent = workoutName;
-  // Reset pause button state
-  var pauseBtn = document.getElementById('ws-pause-btn');
-  if (pauseBtn) { pauseBtn.innerHTML = '&#9646;&#9646; PAUSE'; pauseBtn.classList.remove('paused'); }
   var pausedBanner = document.getElementById('ws-paused-banner');
   if (pausedBanner) pausedBanner.style.display = 'none';
   var session = document.getElementById('workout-session');
@@ -3306,7 +3307,7 @@ function renderSessionExercise() {
   }
   var ex = wsExercises[wsCurrentIdx];
   var numSets = parseSetCount(ex.sets);
-  var html = '<div class="ws-elapsed"><div class="label">ELAPSED TIME</div><div class="time" id="ws-elapsed-time">' + fmt(wsElapsedSeconds) + '</div></div>';
+  var html = '<div class="ws-elapsed"><div class="label">ELAPSED TIME</div><div class="time" id="ws-elapsed-time">' + fmt(wsElapsedSeconds) + '</div><button class="ws-pause-btn" id="ws-pause-btn">&#9646;&#9646; PAUSE</button></div>';
   html += '<div class="ws-ex-card">';
   html += '<div class="ws-ex-num">EXERCISE ' + (wsCurrentIdx + 1) + ' OF ' + wsExercises.length + '</div>';
   html += '<div class="ws-ex-name">' + escapeHTML(ex.name) + '</div>';
@@ -3482,13 +3483,14 @@ document.getElementById('ws-close-btn').addEventListener('click', function() {
   closeWorkoutSession(false);
 });
 
-// Pause / Resume button
-document.getElementById('ws-pause-btn').addEventListener('click', function() {
+// Pause / Resume button — delegated since button is re-rendered each exercise
+document.getElementById('workout-session').addEventListener('click', function(e) {
+  if (!e.target.closest('#ws-pause-btn')) return;
   wsIsPaused = !wsIsPaused;
   var btn = document.getElementById('ws-pause-btn');
   var banner = document.getElementById('ws-paused-banner');
   if (wsIsPaused) {
-    if (btn) { btn.innerHTML = '&#9654; RESUME'; btn.classList.add('paused'); }
+    if (btn) { btn.innerHTML = '&#9654; RESUME WORKOUT'; btn.classList.add('paused'); }
     if (banner) banner.style.display = 'block';
   } else {
     if (btn) { btn.innerHTML = '&#9646;&#9646; PAUSE'; btn.classList.remove('paused'); }
