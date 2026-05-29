@@ -920,14 +920,14 @@
 
       <!-- Weight + Goal Calculator -->
       <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:#9a9aa3;text-transform:uppercase;margin-bottom:12px">YOUR STATS</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:#d0d0d8;text-transform:uppercase;margin-bottom:12px">YOUR STATS</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
-            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">WEIGHT (lbs)</div>
+            <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">WEIGHT (lbs)</div>
             <input type="number" id="user-weight-input" min="50" max="500" placeholder="e.g. 185" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
           </div>
           <div>
-            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">HEIGHT</div>
+            <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">HEIGHT</div>
             <div style="display:flex;gap:6px">
               <input type="number" id="user-height-ft" min="3" max="8" placeholder="ft" style="width:50%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 8px;color:#f5f5f7;font-size:14px;font-weight:700;box-sizing:border-box" />
               <input type="number" id="user-height-in" min="0" max="11" placeholder="in" style="width:50%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 8px;color:#f5f5f7;font-size:14px;font-weight:700;box-sizing:border-box" />
@@ -936,11 +936,11 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
-            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">AGE</div>
+            <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">AGE</div>
             <input type="number" id="user-age-input" min="13" max="100" placeholder="e.g. 28" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:15px;font-weight:700;box-sizing:border-box" />
           </div>
           <div>
-            <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">SEX</div>
+            <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">SEX</div>
             <select id="user-sex-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -948,7 +948,7 @@
           </div>
         </div>
         <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">ACTIVITY LEVEL</div>
+          <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">ACTIVITY LEVEL</div>
           <select id="user-activity-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
             <option value="1.2">Sedentary (desk job, little/no exercise)</option>
             <option value="1.375">Lightly Active (1-3 days/week)</option>
@@ -958,7 +958,7 @@
           </select>
         </div>
         <div style="margin-bottom:12px">
-          <div style="font-size:11px;color:#9a9aa3;font-weight:700;margin-bottom:6px">GOAL</div>
+          <div style="font-size:11px;color:#d0d0d8;font-weight:700;margin-bottom:6px">GOAL</div>
           <select id="user-goal-input" style="width:100%;background:#0b0b0d;border:1px solid #2a2a32;border-radius:8px;padding:10px 12px;color:#f5f5f7;font-size:13px;font-weight:700;box-sizing:border-box;-webkit-appearance:none">
             <option value="lose">Lose Fat</option>
             <option value="maintain">Maintain</option>
@@ -1000,6 +1000,7 @@
         </div>
       </div>
       <div id="meal-plan-list"></div>
+      <div id="food-guide-panel" style="display:none;margin-bottom:14px"></div>
 
       <div class="section-title">WORKOUT REMINDER</div>
       <div class="reminder-card">
@@ -3958,8 +3959,122 @@ function calcNutritionFromWeight(){
   document.getElementById('macro-carbs-val').textContent = carbs + 'g';
   document.getElementById('macro-fats-val').textContent = fats + 'g';
   document.getElementById('nutrition-cal-total').textContent = cals;
+  renderFoodGuide(goal, protein, carbs, fats, cals);
 }
 window.calcNutritionFromWeight = calcNutritionFromWeight;
+
+/* ============ FOOD GUIDE ============ */
+function renderFoodGuide(goal, protein, carbs, fats, cals){
+  var panel = document.getElementById('food-guide-panel');
+  if(!panel) return;
+  var FOODS = {
+    lose: {
+      headline: 'Fat Loss Food Guide',
+      tip: 'Focus on high-volume, low-calorie whole foods. Eat protein at every meal to stay full and protect muscle.',
+      protein: [
+        { food: 'Chicken Breast', detail: '~31g protein per 100g, very lean' },
+        { food: 'Egg Whites', detail: '~11g protein per 100g, near zero fat' },
+        { food: 'Greek Yogurt (0%)', detail: '~10g protein per 100g, gut-friendly' },
+        { food: 'Tilapia / Cod', detail: '~20g protein per 100g, ultra-low fat' },
+        { food: 'Cottage Cheese', detail: '~11g protein per 100g, slow-digesting' }
+      ],
+      carbs: [
+        { food: 'White Rice / Brown Rice', detail: 'Easy to portion, great post-workout' },
+        { food: 'Sweet Potato', detail: 'High fiber, keeps you full longer' },
+        { food: 'Oatmeal', detail: 'Slow-digesting, curbs hunger' },
+        { food: 'Leafy Greens', detail: 'Spinach, kale, romaine — eat freely' },
+        { food: 'Berries', detail: 'Low sugar, high fiber, great snack' }
+      ],
+      fats: [
+        { food: 'Avocado', detail: 'Healthy monounsaturated fats, filling' },
+        { food: 'Almonds / Walnuts', detail: 'Measure portions — calorie-dense' },
+        { food: 'Olive Oil', detail: 'Use for cooking, 1 tbsp = ~120 cal' },
+        { food: 'Whole Eggs (1-2)', detail: 'Pair with egg whites for balance' }
+      ],
+      avoid: 'Sugary drinks, fast food, processed snacks, alcohol, white bread, fried foods.'
+    },
+    build: {
+      headline: 'Muscle Building Food Guide',
+      tip: 'Eat in a slight surplus every day. Prioritize carbs around workouts for energy and recovery.',
+      protein: [
+        { food: 'Chicken Thighs', detail: 'More calories + fat than breast, great for bulk' },
+        { food: 'Whole Eggs', detail: '~6g protein each, healthy fats for hormones' },
+        { food: 'Salmon', detail: 'Omega-3s reduce muscle soreness' },
+        { food: 'Ground Beef (93% lean)', detail: 'Creatine + iron + protein powerhouse' },
+        { food: 'Protein Powder (Whey)', detail: 'Fast-absorbing, ideal post-workout' }
+      ],
+      carbs: [
+        { food: 'White Rice', detail: 'Fast-digesting carbs, ideal around training' },
+        { food: 'Pasta / Bread (whole grain)', detail: 'High calorie-density for surplus' },
+        { food: 'Bananas', detail: 'Pre-workout energy + potassium' },
+        { food: 'Oats', detail: 'Morning fuel, slow energy release' },
+        { food: 'Potatoes', detail: 'Nutrient-dense, versatile, high carb' }
+      ],
+      fats: [
+        { food: 'Whole Eggs', detail: 'Cholesterol supports testosterone production' },
+        { food: 'Peanut Butter', detail: 'Easy calorie-dense addition to meals' },
+        { food: 'Olive Oil / Avocado Oil', detail: 'Drizzle on rice or veggies for extra cals' },
+        { food: 'Fatty Fish (Salmon, Mackerel)', detail: 'Anti-inflammatory omega-3s' }
+      ],
+      avoid: 'Junk food bulking. Dirty bulking adds fat fast. Stick to whole foods with a modest surplus.'
+    },
+    maintain: {
+      headline: 'Maintenance Food Guide',
+      tip: 'Balance is key. Eat a mix of all macros at each meal and keep portions consistent day to day.',
+      protein: [
+        { food: 'Chicken Breast or Thighs', detail: 'Versatile lean protein for any meal' },
+        { food: 'Eggs (whole)', detail: 'Complete amino acid profile' },
+        { food: 'Canned Tuna / Salmon', detail: 'Quick, affordable protein source' },
+        { food: 'Greek Yogurt', detail: 'Great snack with fruit' },
+        { food: 'Lean Beef / Turkey', detail: 'Iron-rich, satisfying' }
+      ],
+      carbs: [
+        { food: 'Rice, Oats, Potatoes', detail: 'Rotate these as your main carb sources' },
+        { food: 'Fruits (apple, banana, berries)', detail: 'Natural sugars + fiber + vitamins' },
+        { food: 'Vegetables (all types)', detail: 'Eat the rainbow, unlimited' },
+        { food: 'Whole Grain Bread / Wraps', detail: 'Good for quick balanced meals' }
+      ],
+      fats: [
+        { food: 'Avocado', detail: 'Daily healthy fat, great with eggs' },
+        { food: 'Nuts and Seeds', detail: 'Mixed nuts as a snack, watch portions' },
+        { food: 'Olive Oil', detail: 'Primary cooking fat' },
+        { food: 'Fatty Fish 2x/week', detail: 'Heart-healthy, muscle-supporting' }
+      ],
+      avoid: 'Ultra-processed snacks, sugary drinks, excessive alcohol — these quietly push you into a surplus.'
+    }
+  };
+  var g = FOODS[goal] || FOODS['maintain'];
+  function foodRows(arr){
+    return arr.map(function(f){
+      return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid #1a1a20">'+
+        '<div style="font-size:13px;font-weight:700;color:#f5f5f7">'+f.food+'</div>'+
+        '<div style="font-size:11px;color:#9a9aa3;text-align:right;max-width:55%;line-height:1.4">'+f.detail+'</div>'+
+        '</div>';
+    }).join('');
+  }
+  function section(icon, label, color, arr){
+    return '<div style="margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:'+color+';margin-bottom:6px;display:flex;align-items:center;gap:6px">'+
+      '<span style="font-size:14px">'+icon+'</span> '+label+'</div>'+
+      foodRows(arr)+
+      '</div>';
+  }
+  panel.style.display = 'block';
+  panel.innerHTML =
+    '<div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px">'+
+    '<div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:6px">WHAT TO EAT</div>'+
+    '<div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:4px">'+g.headline+'</div>'+
+    '<div style="font-size:12px;color:#9a9aa3;margin-bottom:14px;line-height:1.5">'+g.tip+'</div>'+
+    section('🥩', 'PROTEIN SOURCES — '+protein+'g/day', '#ff7a3d', g.protein)+
+    section('🍚', 'CARB SOURCES — '+carbs+'g/day', '#f5a623', g.carbs)+
+    section('🥑', 'FAT SOURCES — '+fats+'g/day', '#4caf82', g.fats)+
+    '<div style="background:#1a1010;border:1px solid #3a1a1a;border-radius:8px;padding:10px;margin-top:4px">'+
+    '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4444;margin-bottom:4px">AVOID</div>'+
+    '<div style="font-size:12px;color:#c0a0a0;line-height:1.5">'+g.avoid+'</div>'+
+    '</div>'+
+    '</div>';
+}
+window.renderFoodGuide = renderFoodGuide;
 
 function loadNutrition() {
   try {
