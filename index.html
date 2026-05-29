@@ -3967,6 +3967,7 @@ window.calcNutritionFromWeight = calcNutritionFromWeight;
 function renderFoodGuide(goal, protein, carbs, fats, cals){
   var panel = document.getElementById('food-guide-panel');
   if(!panel) return;
+  _mealGoal = goal; _mealProtein = protein; _mealCarbs = carbs; _mealFats = fats;
   var FOODS = {
     lose: {
       headline: 'Fat Loss Food Guide',
@@ -4065,16 +4066,159 @@ function renderFoodGuide(goal, protein, carbs, fats, cals){
     '<div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:6px">WHAT TO EAT</div>'+
     '<div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:4px">'+g.headline+'</div>'+
     '<div style="font-size:12px;color:#9a9aa3;margin-bottom:14px;line-height:1.5">'+g.tip+'</div>'+
-    section('🥩', 'PROTEIN SOURCES — '+protein+'g/day', '#ff7a3d', g.protein)+
-    section('🍚', 'CARB SOURCES — '+carbs+'g/day', '#f5a623', g.carbs)+
-    section('🥑', 'FAT SOURCES — '+fats+'g/day', '#4caf82', g.fats)+
+    section('\uD83E\uDD69', 'PROTEIN SOURCES \u2014 '+protein+'g/day', '#ff7a3d', g.protein)+
+    section('\uD83C\uDF5A', 'CARB SOURCES \u2014 '+carbs+'g/day', '#f5a623', g.carbs)+
+    section('\uD83E\uDD51', 'FAT SOURCES \u2014 '+fats+'g/day', '#4caf82', g.fats)+
     '<div style="background:#1a1010;border:1px solid #3a1a1a;border-radius:8px;padding:10px;margin-top:4px">'+
     '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4444;margin-bottom:4px">AVOID</div>'+
     '<div style="font-size:12px;color:#c0a0a0;line-height:1.5">'+g.avoid+'</div>'+
     '</div>'+
+    '<button onclick="generateMealIdeas()" style="width:100%;margin-top:14px;background:linear-gradient(135deg,#ff4500,#ff7a3d);border:none;border-radius:10px;padding:13px;color:#fff;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">\u26A1 GENERATE MEAL IDEAS</button>'+
+    '<div id="meal-ideas-output" style="margin-top:12px"></div>'+
     '</div>';
 }
 window.renderFoodGuide = renderFoodGuide;
+
+/* ============ MEAL IDEA GENERATOR ============ */
+var _mealGoal = 'maintain';
+var _mealProtein = 150;
+var _mealCarbs = 200;
+var _mealFats = 60;
+function renderFoodGuideWithMeta(goal, protein, carbs, fats, cals){
+  _mealGoal = goal; _mealProtein = protein; _mealCarbs = carbs; _mealFats = fats;
+}
+
+function generateMealIdeas(){
+  var goal = _mealGoal;
+  var protein = _mealProtein;
+  var carbs = _mealCarbs;
+  var fats = _mealFats;
+
+  var MEALS = {
+    lose: {
+      breakfast: [
+        { name: 'Egg White Omelette', desc: '4 egg whites + spinach + mushrooms + salsa. ~28P / 8C / 2F' },
+        { name: 'Greek Yogurt Parfait', desc: '1 cup 0% Greek yogurt + berries + 1 tbsp chia seeds. ~22P / 30C / 4F' },
+        { name: 'Protein Oatmeal', desc: '1/2 cup oats + 1 scoop whey + cinnamon + blueberries. ~30P / 40C / 5F' },
+        { name: 'Cottage Cheese Bowl', desc: '1 cup cottage cheese + cucumber + tomato + black pepper. ~25P / 8C / 3F' },
+        { name: 'Turkey Scramble', desc: '3 eggs + 2oz turkey + bell pepper + hot sauce. ~35P / 5C / 10F' }
+      ],
+      lunch: [
+        { name: 'Shredded Chicken Rice Bowl', desc: 'Grilled chicken + white rice + broccoli + low-sodium soy sauce. ~40P / 45C / 5F' },
+        { name: 'Tuna Lettuce Wraps', desc: 'Canned tuna + Greek yogurt + celery in romaine leaves. ~35P / 6C / 4F' },
+        { name: 'Turkey Veggie Wrap', desc: 'Whole wheat tortilla + turkey breast + spinach + mustard. ~32P / 30C / 6F' },
+        { name: 'Tilapia + Sweet Potato', desc: 'Baked tilapia + 1 medium sweet potato + steamed green beans. ~38P / 35C / 4F' },
+        { name: 'Lean Beef Stir Fry', desc: '4oz 93% beef + zucchini + snap peas + ginger + low-sodium soy. ~35P / 20C / 10F' }
+      ],
+      dinner: [
+        { name: 'Baked Cod + Asparagus', desc: 'Seasoned cod fillet + roasted asparagus + lemon. ~36P / 5C / 4F' },
+        { name: 'Chicken Veggie Bowl', desc: 'Grilled chicken + roasted cauliflower + cucumber salad. ~40P / 15C / 6F' },
+        { name: 'Turkey Meatballs + Zucchini Noodles', desc: 'Lean turkey meatballs + marinara + zoodles. ~38P / 20C / 8F' },
+        { name: 'Egg White Frittata', desc: '6 egg whites + kale + sun-dried tomato + feta. ~28P / 6C / 5F' },
+        { name: 'Shrimp + Brown Rice', desc: 'Garlic shrimp + 1/2 cup brown rice + steamed broccoli. ~34P / 38C / 5F' }
+      ],
+      snack: [
+        { name: 'Protein Shake + Apple', desc: '1 scoop whey in water + 1 medium apple. ~25P / 25C / 2F' },
+        { name: 'Cottage Cheese + Cucumber', desc: '1/2 cup cottage cheese + sliced cucumber. ~14P / 5C / 2F' },
+        { name: 'Hard-Boiled Eggs', desc: '2 whole eggs. ~12P / 1C / 10F' },
+        { name: 'Greek Yogurt + Berries', desc: '3/4 cup 0% Greek yogurt + mixed berries. ~16P / 18C / 1F' },
+        { name: 'Rice Cake + Tuna', desc: '2 rice cakes + canned tuna + mustard. ~20P / 14C / 2F' }
+      ]
+    },
+    build: {
+      breakfast: [
+        { name: 'Mass Omelette', desc: '4 whole eggs + 2oz cheddar + turkey + toast. ~45P / 35C / 22F' },
+        { name: 'Overnight Oats', desc: '1 cup oats + whole milk + banana + PB + honey. ~28P / 80C / 18F' },
+        { name: 'Bulking Smoothie', desc: '2 scoops whey + 1 cup oats + banana + PB + whole milk. ~55P / 85C / 22F' },
+        { name: 'Steak and Eggs', desc: '4oz sirloin + 3 whole eggs + home fries. ~52P / 30C / 24F' },
+        { name: 'French Toast Protein Stack', desc: '4 slices whole grain bread + egg batter + maple syrup + side of Greek yogurt. ~38P / 75C / 12F' }
+      ],
+      lunch: [
+        { name: 'Chicken Rice Bulk Bowl', desc: '6oz chicken thigh + 1.5 cups white rice + avocado + salsa. ~52P / 70C / 20F' },
+        { name: 'Beef and Pasta', desc: '5oz ground beef + 2 cups pasta + marinara + parmesan. ~50P / 80C / 20F' },
+        { name: 'Salmon + Potatoes', desc: '6oz salmon + 1 large baked potato + sour cream + broccoli. ~48P / 55C / 22F' },
+        { name: 'Burrito Bowl', desc: 'Ground beef + white rice + black beans + cheese + guac. ~50P / 75C / 28F' },
+        { name: 'Tuna Pasta Salad', desc: '2 cans tuna + 2 cups pasta + olive oil + cherry tomatoes + olives. ~55P / 78C / 18F' }
+      ],
+      dinner: [
+        { name: 'Chicken Thigh + Mac and Cheese', desc: '6oz chicken thigh + 1.5 cups mac and cheese + side salad. ~50P / 72C / 22F' },
+        { name: 'Beef Stir Fry + Rice', desc: '5oz beef + 1.5 cups white rice + broccoli + oyster sauce. ~48P / 70C / 16F' },
+        { name: 'Pork Tenderloin + Sweet Potato Mash', desc: '6oz pork + 2 medium sweet potatoes + butter. ~46P / 65C / 18F' },
+        { name: 'Salmon + Quinoa', desc: '6oz salmon + 1 cup quinoa + roasted veggies + olive oil. ~50P / 55C / 24F' },
+        { name: 'Turkey Burger + Fries', desc: 'Lean turkey patty + whole wheat bun + oven fries + ketchup. ~45P / 68C / 16F' }
+      ],
+      snack: [
+        { name: 'Mass Gainer Shake', desc: '2 scoops whey + whole milk + banana + 2 tbsp PB. ~50P / 65C / 20F' },
+        { name: 'PB Rice Cakes', desc: '4 rice cakes + 2 tbsp PB + honey drizzle. ~10P / 50C / 16F' },
+        { name: 'Cheese and Crackers', desc: '2oz cheddar + whole grain crackers. ~14P / 22C / 14F' },
+        { name: 'Almonds + Protein Bar', desc: '1oz almonds + high-protein bar. ~22P / 28C / 18F' },
+        { name: 'Greek Yogurt + Granola', desc: '1 cup full-fat Greek yogurt + granola + honey. ~18P / 45C / 12F' }
+      ]
+    },
+    maintain: {
+      breakfast: [
+        { name: 'Veggie Scramble', desc: '3 whole eggs + peppers + onion + spinach + 1 slice toast. ~26P / 28C / 14F' },
+        { name: 'Protein Pancakes', desc: '2 scoops protein powder pancakes + banana + light syrup. ~32P / 45C / 8F' },
+        { name: 'Avocado Toast + Eggs', desc: '2 eggs + 1/2 avocado + 2 slices whole grain bread + everything bagel seasoning. ~22P / 35C / 18F' },
+        { name: 'Greek Yogurt + Fruit Bowl', desc: '1 cup Greek yogurt + mixed fruit + walnuts + honey. ~20P / 40C / 12F' },
+        { name: 'Oatmeal + Eggs', desc: '1 cup oats + 2 scrambled eggs + orange juice. ~28P / 55C / 12F' }
+      ],
+      lunch: [
+        { name: 'Grilled Chicken Wrap', desc: 'Grilled chicken + whole wheat wrap + lettuce + tomato + hummus. ~38P / 42C / 12F' },
+        { name: 'Salmon Rice Bowl', desc: '5oz salmon + 1 cup rice + edamame + cucumber + sesame dressing. ~42P / 50C / 16F' },
+        { name: 'Turkey Chili', desc: 'Ground turkey + kidney beans + tomatoes + bell peppers + spices. ~36P / 40C / 10F' },
+        { name: 'Chicken Caesar Salad', desc: 'Grilled chicken + romaine + parmesan + croutons + Caesar dressing. ~38P / 22C / 16F' },
+        { name: 'Beef Taco Bowl', desc: 'Lean ground beef + rice + black beans + pico de gallo + light sour cream. ~40P / 52C / 14F' }
+      ],
+      dinner: [
+        { name: 'Baked Salmon + Veggies', desc: '5oz salmon + roasted zucchini + bell peppers + olive oil. ~40P / 12C / 18F' },
+        { name: 'Chicken Stir Fry', desc: '5oz chicken breast + mixed veggies + teriyaki sauce + rice. ~40P / 48C / 10F' },
+        { name: 'Lean Beef Tacos', desc: '4oz lean beef + 2 corn tortillas + guac + pico + lime. ~32P / 38C / 16F' },
+        { name: 'Shrimp Pasta', desc: '4oz shrimp + 1.5 cups whole wheat pasta + garlic olive oil + cherry tomatoes. ~36P / 60C / 14F' },
+        { name: 'Turkey Stuffed Peppers', desc: 'Ground turkey + brown rice + tomato sauce stuffed in bell peppers. ~34P / 40C / 10F' }
+      ],
+      snack: [
+        { name: 'Apple + Almond Butter', desc: '1 medium apple + 2 tbsp almond butter. ~6P / 30C / 18F' },
+        { name: 'Protein Shake', desc: '1 scoop whey + water or almond milk. ~25P / 5C / 3F' },
+        { name: 'Trail Mix', desc: '1oz mixed nuts + dried cranberries. ~6P / 20C / 14F' },
+        { name: 'Hard-Boiled Eggs + Fruit', desc: '2 eggs + 1 piece of fruit. ~14P / 20C / 10F' },
+        { name: 'Hummus + Veggies', desc: '3 tbsp hummus + carrots + celery + cucumber. ~6P / 20C / 8F' }
+      ]
+    }
+  };
+
+  function pick(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  var g = MEALS[goal] || MEALS['maintain'];
+  var b = pick(g.breakfast);
+  var l = pick(g.lunch);
+  var d = pick(g.dinner);
+  var s = pick(g.snack);
+
+  function mealCard(icon, label, meal){
+    return '<div style="background:#0f0f13;border:1px solid #222228;border-radius:10px;padding:12px;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+      '<span style="font-size:16px">'+icon+'</span>'+
+      '<span style="font-size:10px;font-weight:900;letter-spacing:2px;color:#9a9aa3;text-transform:uppercase">'+label+'</span>'+
+      '</div>'+
+      '<div style="font-size:14px;font-weight:800;color:#f5f5f7;margin-bottom:4px">'+meal.name+'</div>'+
+      '<div style="font-size:12px;color:#9a9aa3;line-height:1.5">'+meal.desc+'</div>'+
+      '</div>';
+  }
+
+  var out = document.getElementById('meal-ideas-output');
+  if(!out) return;
+  out.innerHTML =
+    '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4500;text-transform:uppercase;margin-bottom:10px">TODAY\'S MEAL PLAN</div>'+
+    mealCard('\uD83C\uDF05','Breakfast', b)+
+    mealCard('\uD83E\uDD57','Lunch', l)+
+    mealCard('\uD83C\uDF7D\uFE0F','Dinner', d)+
+    mealCard('\uD83C\uDF4E','Snack', s)+
+    '<div style="font-size:11px;color:#6a6a75;text-align:center;margin-top:8px">Tap Generate again for a new plan</div>';
+}
+window.generateMealIdeas = generateMealIdeas;
 
 function loadNutrition() {
   try {
