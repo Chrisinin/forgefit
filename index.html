@@ -8,7 +8,7 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:#0b0b0d;color:#f5f5f7;font-family:'Satoshi',system-ui,-apple-system,sans-serif;font-weight:500;min-height:100vh;overflow-x:hidden}
-  body::before{content:'';position:fixed;inset:0;background:url('bg_gym_night.png') center/cover no-repeat;opacity:0.18;z-index:0;pointer-events:none}
+  body::before{content:'';position:fixed;inset:0;background:url('bg_gym_night.png') center/cover no-repeat;opacity:0.32;z-index:0;pointer-events:none}
   #auth-screen,#app-shell{position:relative;z-index:1}
   button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;font-weight:500}
   input{font-family:inherit;color:inherit}
@@ -128,6 +128,8 @@
     transition:all .15s;
   }
   .pill.active{background:#ff4500;border-color:#ff4500;color:#0b0b0d}
+  .allergy-pill{padding:7px 13px;border-radius:999px;background:#141418;border:1px solid #2a2a32;font-size:12px;font-weight:700;color:#9a9aa3;cursor:pointer;transition:all .15s;letter-spacing:0.03em;user-select:none}
+  .allergy-pill.active{background:rgba(255,60,60,0.15);border-color:#ff4444;color:#ff6666}
 
   /* ---------- GENDER TOGGLE (AUTH) ---------- */
   .gender-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
@@ -1000,6 +1002,25 @@
         </div>
       </div>
       <div id="meal-plan-list"></div>
+
+      <!-- ALLERGY / DIETARY RESTRICTIONS -->
+      <div style="background:#141418;border:1px solid #1f1f25;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#d0d0d8;text-transform:uppercase;margin-bottom:4px">ALLERGIES &amp; RESTRICTIONS</div>
+        <div style="font-size:12px;color:#9a9aa3;margin-bottom:12px">Select anything you cannot eat. Meal ideas will avoid these automatically.</div>
+        <div id="allergy-pills" style="display:flex;flex-wrap:wrap;gap:8px">
+          <div class="allergy-pill" data-allergen="dairy" onclick="toggleAllergen(this)">Dairy</div>
+          <div class="allergy-pill" data-allergen="gluten" onclick="toggleAllergen(this)">Gluten</div>
+          <div class="allergy-pill" data-allergen="eggs" onclick="toggleAllergen(this)">Eggs</div>
+          <div class="allergy-pill" data-allergen="fish" onclick="toggleAllergen(this)">Fish / Seafood</div>
+          <div class="allergy-pill" data-allergen="nuts" onclick="toggleAllergen(this)">Tree Nuts</div>
+          <div class="allergy-pill" data-allergen="peanuts" onclick="toggleAllergen(this)">Peanuts</div>
+          <div class="allergy-pill" data-allergen="soy" onclick="toggleAllergen(this)">Soy</div>
+          <div class="allergy-pill" data-allergen="pork" onclick="toggleAllergen(this)">Pork</div>
+          <div class="allergy-pill" data-allergen="beef" onclick="toggleAllergen(this)">Beef / Red Meat</div>
+          <div class="allergy-pill" data-allergen="shellfish" onclick="toggleAllergen(this)">Shellfish</div>
+        </div>
+      </div>
+
       <div id="food-guide-panel" style="display:none;margin-bottom:14px"></div>
 
       <div class="section-title">WORKOUT REMINDER</div>
@@ -4079,15 +4100,35 @@ function renderFoodGuide(goal, protein, carbs, fats, cals){
 }
 window.renderFoodGuide = renderFoodGuide;
 
-/* ============ MEAL IDEA GENERATOR ============ */
+/* ============ ALLERGEN MANAGEMENT ============ */
 var _mealGoal = 'maintain';
 var _mealProtein = 150;
 var _mealCarbs = 200;
 var _mealFats = 60;
-function renderFoodGuideWithMeta(goal, protein, carbs, fats, cals){
-  _mealGoal = goal; _mealProtein = protein; _mealCarbs = carbs; _mealFats = fats;
+var _activeAllergens = [];
+
+function toggleAllergen(el){
+  el.classList.toggle('active');
+  var a = el.getAttribute('data-allergen');
+  var idx = _activeAllergens.indexOf(a);
+  if(idx === -1){ _activeAllergens.push(a); } else { _activeAllergens.splice(idx,1); }
+  try{ localStorage.setItem('ff_allergens', JSON.stringify(_activeAllergens)); } catch(e){}
+}
+window.toggleAllergen = toggleAllergen;
+
+function loadAllergens(){
+  try{
+    var raw = localStorage.getItem('ff_allergens');
+    if(!raw) return;
+    _activeAllergens = JSON.parse(raw);
+    _activeAllergens.forEach(function(a){
+      var el = document.querySelector('.allergy-pill[data-allergen="'+a+'"]');
+      if(el) el.classList.add('active');
+    });
+  } catch(e){}
 }
 
+/* ============ MEAL IDEA GENERATOR ============ */
 function generateMealIdeas(){
   var goal = _mealGoal;
   var protein = _mealProtein;
@@ -4097,98 +4138,128 @@ function generateMealIdeas(){
   var MEALS = {
     lose: {
       breakfast: [
-        { name: 'Egg White Omelette', desc: '4 egg whites + spinach + mushrooms + salsa. ~28P / 8C / 2F' },
-        { name: 'Greek Yogurt Parfait', desc: '1 cup 0% Greek yogurt + berries + 1 tbsp chia seeds. ~22P / 30C / 4F' },
-        { name: 'Protein Oatmeal', desc: '1/2 cup oats + 1 scoop whey + cinnamon + blueberries. ~30P / 40C / 5F' },
-        { name: 'Cottage Cheese Bowl', desc: '1 cup cottage cheese + cucumber + tomato + black pepper. ~25P / 8C / 3F' },
-        { name: 'Turkey Scramble', desc: '3 eggs + 2oz turkey + bell pepper + hot sauce. ~35P / 5C / 10F' }
+        { name: 'Egg White Omelette', desc: '4 egg whites + spinach + mushrooms + salsa. ~28P / 8C / 2F', tags: ['eggs'] },
+        { name: 'Greek Yogurt Parfait', desc: '1 cup 0% Greek yogurt + berries + 1 tbsp chia seeds. ~22P / 30C / 4F', tags: ['dairy'] },
+        { name: 'Protein Oatmeal', desc: '1/2 cup oats + 1 scoop whey + cinnamon + blueberries. ~30P / 40C / 5F', tags: ['gluten','dairy'] },
+        { name: 'Cottage Cheese Bowl', desc: '1 cup cottage cheese + cucumber + tomato + black pepper. ~25P / 8C / 3F', tags: ['dairy'] },
+        { name: 'Turkey Scramble', desc: '3 eggs + 2oz turkey + bell pepper + hot sauce. ~35P / 5C / 10F', tags: ['eggs'] },
+        { name: 'Chicken and Rice Porridge', desc: 'Ground chicken + white rice + ginger broth + scallions. ~32P / 38C / 6F', tags: [] },
+        { name: 'Smoothie Bowl', desc: '1 scoop vegan protein + frozen berries + banana + almond milk + seeds. ~28P / 40C / 5F', tags: ['nuts'] }
       ],
       lunch: [
-        { name: 'Shredded Chicken Rice Bowl', desc: 'Grilled chicken + white rice + broccoli + low-sodium soy sauce. ~40P / 45C / 5F' },
-        { name: 'Tuna Lettuce Wraps', desc: 'Canned tuna + Greek yogurt + celery in romaine leaves. ~35P / 6C / 4F' },
-        { name: 'Turkey Veggie Wrap', desc: 'Whole wheat tortilla + turkey breast + spinach + mustard. ~32P / 30C / 6F' },
-        { name: 'Tilapia + Sweet Potato', desc: 'Baked tilapia + 1 medium sweet potato + steamed green beans. ~38P / 35C / 4F' },
-        { name: 'Lean Beef Stir Fry', desc: '4oz 93% beef + zucchini + snap peas + ginger + low-sodium soy. ~35P / 20C / 10F' }
+        { name: 'Shredded Chicken Rice Bowl', desc: 'Grilled chicken + white rice + broccoli + coconut aminos. ~40P / 45C / 5F', tags: [] },
+        { name: 'Tuna Lettuce Wraps', desc: 'Canned tuna + avocado + celery in romaine leaves. ~35P / 6C / 4F', tags: ['fish'] },
+        { name: 'Turkey Veggie Wrap', desc: 'Whole wheat tortilla + turkey breast + spinach + mustard. ~32P / 30C / 6F', tags: ['gluten'] },
+        { name: 'Tilapia + Sweet Potato', desc: 'Baked tilapia + 1 medium sweet potato + green beans. ~38P / 35C / 4F', tags: ['fish'] },
+        { name: 'Lean Beef Stir Fry', desc: '4oz 93% beef + zucchini + snap peas + ginger. ~35P / 20C / 10F', tags: ['beef','soy'] },
+        { name: 'Chicken + Lentil Soup', desc: 'Shredded chicken + lentils + carrots + cumin broth. ~36P / 38C / 5F', tags: [] },
+        { name: 'Ground Turkey Lettuce Cups', desc: 'Seasoned ground turkey + water chestnuts + hoisin in butter lettuce. ~34P / 18C / 7F', tags: ['soy'] }
       ],
       dinner: [
-        { name: 'Baked Cod + Asparagus', desc: 'Seasoned cod fillet + roasted asparagus + lemon. ~36P / 5C / 4F' },
-        { name: 'Chicken Veggie Bowl', desc: 'Grilled chicken + roasted cauliflower + cucumber salad. ~40P / 15C / 6F' },
-        { name: 'Turkey Meatballs + Zucchini Noodles', desc: 'Lean turkey meatballs + marinara + zoodles. ~38P / 20C / 8F' },
-        { name: 'Egg White Frittata', desc: '6 egg whites + kale + sun-dried tomato + feta. ~28P / 6C / 5F' },
-        { name: 'Shrimp + Brown Rice', desc: 'Garlic shrimp + 1/2 cup brown rice + steamed broccoli. ~34P / 38C / 5F' }
+        { name: 'Baked Cod + Asparagus', desc: 'Seasoned cod fillet + roasted asparagus + lemon. ~36P / 5C / 4F', tags: ['fish'] },
+        { name: 'Chicken Veggie Bowl', desc: 'Grilled chicken + roasted cauliflower + cucumber salad. ~40P / 15C / 6F', tags: [] },
+        { name: 'Turkey Meatballs + Zucchini Noodles', desc: 'Lean turkey meatballs + marinara + zoodles. ~38P / 20C / 8F', tags: ['gluten','eggs'] },
+        { name: 'Egg White Frittata', desc: '6 egg whites + kale + sun-dried tomato + herbs. ~28P / 6C / 5F', tags: ['eggs'] },
+        { name: 'Shrimp + Brown Rice', desc: 'Garlic shrimp + 1/2 cup brown rice + steamed broccoli. ~34P / 38C / 5F', tags: ['shellfish'] },
+        { name: 'Baked Chicken Thigh + Roasted Veggies', desc: 'Herb-roasted chicken + peppers + zucchini + sweet potato. ~40P / 30C / 9F', tags: [] },
+        { name: 'Ground Turkey Taco Bowl', desc: 'Turkey + black beans + corn + salsa + rice. ~36P / 42C / 7F', tags: [] }
       ],
       snack: [
-        { name: 'Protein Shake + Apple', desc: '1 scoop whey in water + 1 medium apple. ~25P / 25C / 2F' },
-        { name: 'Cottage Cheese + Cucumber', desc: '1/2 cup cottage cheese + sliced cucumber. ~14P / 5C / 2F' },
-        { name: 'Hard-Boiled Eggs', desc: '2 whole eggs. ~12P / 1C / 10F' },
-        { name: 'Greek Yogurt + Berries', desc: '3/4 cup 0% Greek yogurt + mixed berries. ~16P / 18C / 1F' },
-        { name: 'Rice Cake + Tuna', desc: '2 rice cakes + canned tuna + mustard. ~20P / 14C / 2F' }
+        { name: 'Protein Shake + Apple', desc: '1 scoop whey in water + 1 medium apple. ~25P / 25C / 2F', tags: ['dairy'] },
+        { name: 'Cottage Cheese + Cucumber', desc: '1/2 cup cottage cheese + sliced cucumber. ~14P / 5C / 2F', tags: ['dairy'] },
+        { name: 'Hard-Boiled Eggs', desc: '2 whole eggs. ~12P / 1C / 10F', tags: ['eggs'] },
+        { name: 'Rice Cake + Tuna', desc: '2 rice cakes + canned tuna + mustard. ~20P / 14C / 2F', tags: ['fish'] },
+        { name: 'Edamame + Pumpkin Seeds', desc: '1/2 cup edamame + 1oz pumpkin seeds. ~14P / 12C / 8F', tags: ['soy'] },
+        { name: 'Chicken Jerky + Cucumber', desc: '1.5oz chicken jerky + sliced cucumber. ~18P / 6C / 2F', tags: [] },
+        { name: 'Vegan Protein Shake + Banana', desc: '1 scoop plant protein + water + banana. ~22P / 28C / 3F', tags: [] }
       ]
     },
     build: {
       breakfast: [
-        { name: 'Mass Omelette', desc: '4 whole eggs + 2oz cheddar + turkey + toast. ~45P / 35C / 22F' },
-        { name: 'Overnight Oats', desc: '1 cup oats + whole milk + banana + PB + honey. ~28P / 80C / 18F' },
-        { name: 'Bulking Smoothie', desc: '2 scoops whey + 1 cup oats + banana + PB + whole milk. ~55P / 85C / 22F' },
-        { name: 'Steak and Eggs', desc: '4oz sirloin + 3 whole eggs + home fries. ~52P / 30C / 24F' },
-        { name: 'French Toast Protein Stack', desc: '4 slices whole grain bread + egg batter + maple syrup + side of Greek yogurt. ~38P / 75C / 12F' }
+        { name: 'Mass Omelette', desc: '4 whole eggs + 2oz cheddar + turkey + toast. ~45P / 35C / 22F', tags: ['eggs','dairy','gluten'] },
+        { name: 'Overnight Oats', desc: '1 cup oats + whole milk + banana + PB + honey. ~28P / 80C / 18F', tags: ['gluten','dairy','peanuts'] },
+        { name: 'Bulking Smoothie', desc: '2 scoops whey + 1 cup oats + banana + PB + whole milk. ~55P / 85C / 22F', tags: ['dairy','gluten','peanuts'] },
+        { name: 'Steak and Eggs', desc: '4oz sirloin + 3 whole eggs + home fries. ~52P / 30C / 24F', tags: ['eggs','beef'] },
+        { name: 'French Toast Protein Stack', desc: '4 slices whole grain bread + egg batter + maple syrup + Greek yogurt. ~38P / 75C / 12F', tags: ['gluten','eggs','dairy'] },
+        { name: 'Chicken Fried Rice', desc: 'Chicken + white rice + mixed veg + coconut aminos + sesame oil. ~42P / 70C / 14F', tags: ['soy'] },
+        { name: 'Banana Protein Pancakes', desc: 'Banana + oats + vegan protein + almond milk + maple syrup. ~36P / 72C / 10F', tags: ['gluten','nuts'] }
       ],
       lunch: [
-        { name: 'Chicken Rice Bulk Bowl', desc: '6oz chicken thigh + 1.5 cups white rice + avocado + salsa. ~52P / 70C / 20F' },
-        { name: 'Beef and Pasta', desc: '5oz ground beef + 2 cups pasta + marinara + parmesan. ~50P / 80C / 20F' },
-        { name: 'Salmon + Potatoes', desc: '6oz salmon + 1 large baked potato + sour cream + broccoli. ~48P / 55C / 22F' },
-        { name: 'Burrito Bowl', desc: 'Ground beef + white rice + black beans + cheese + guac. ~50P / 75C / 28F' },
-        { name: 'Tuna Pasta Salad', desc: '2 cans tuna + 2 cups pasta + olive oil + cherry tomatoes + olives. ~55P / 78C / 18F' }
+        { name: 'Chicken Rice Bulk Bowl', desc: '6oz chicken thigh + 1.5 cups white rice + avocado + salsa. ~52P / 70C / 20F', tags: [] },
+        { name: 'Beef and Pasta', desc: '5oz ground beef + 2 cups pasta + marinara + parmesan. ~50P / 80C / 20F', tags: ['gluten','beef','dairy'] },
+        { name: 'Salmon + Potatoes', desc: '6oz salmon + 1 large baked potato + sour cream + broccoli. ~48P / 55C / 22F', tags: ['fish','dairy'] },
+        { name: 'Burrito Bowl', desc: 'Ground beef + white rice + black beans + cheese + guac. ~50P / 75C / 28F', tags: ['beef','dairy'] },
+        { name: 'Tuna Pasta Salad', desc: '2 cans tuna + 2 cups pasta + olive oil + cherry tomatoes. ~55P / 78C / 18F', tags: ['fish','gluten'] },
+        { name: 'Turkey + Sweet Potato Bulk Bowl', desc: 'Ground turkey + 2 sweet potatoes + black beans + avocado. ~48P / 75C / 16F', tags: [] },
+        { name: 'Chicken Thigh Fried Rice', desc: '6oz chicken thigh + 2 cups rice + broccoli + sesame oil. ~50P / 72C / 18F', tags: ['soy'] }
       ],
       dinner: [
-        { name: 'Chicken Thigh + Mac and Cheese', desc: '6oz chicken thigh + 1.5 cups mac and cheese + side salad. ~50P / 72C / 22F' },
-        { name: 'Beef Stir Fry + Rice', desc: '5oz beef + 1.5 cups white rice + broccoli + oyster sauce. ~48P / 70C / 16F' },
-        { name: 'Pork Tenderloin + Sweet Potato Mash', desc: '6oz pork + 2 medium sweet potatoes + butter. ~46P / 65C / 18F' },
-        { name: 'Salmon + Quinoa', desc: '6oz salmon + 1 cup quinoa + roasted veggies + olive oil. ~50P / 55C / 24F' },
-        { name: 'Turkey Burger + Fries', desc: 'Lean turkey patty + whole wheat bun + oven fries + ketchup. ~45P / 68C / 16F' }
+        { name: 'Chicken Thigh + Mac and Cheese', desc: '6oz chicken thigh + 1.5 cups mac and cheese + side salad. ~50P / 72C / 22F', tags: ['gluten','dairy'] },
+        { name: 'Beef Stir Fry + Rice', desc: '5oz beef + 1.5 cups white rice + broccoli + oyster sauce. ~48P / 70C / 16F', tags: ['beef','soy','gluten'] },
+        { name: 'Pork Tenderloin + Sweet Potato Mash', desc: '6oz pork + 2 medium sweet potatoes + butter. ~46P / 65C / 18F', tags: ['pork','dairy'] },
+        { name: 'Salmon + Quinoa', desc: '6oz salmon + 1 cup quinoa + roasted veggies + olive oil. ~50P / 55C / 24F', tags: ['fish'] },
+        { name: 'Turkey Burger + Fries', desc: 'Lean turkey patty + whole wheat bun + oven fries. ~45P / 68C / 16F', tags: ['gluten'] },
+        { name: 'Chicken + Lentil Curry', desc: 'Chicken thigh + lentils + coconut milk + rice. ~48P / 65C / 18F', tags: [] },
+        { name: 'Ground Turkey Pasta Bake', desc: 'Turkey + whole wheat penne + tomato sauce + mozzarella. ~50P / 70C / 16F', tags: ['gluten','dairy'] }
       ],
       snack: [
-        { name: 'Mass Gainer Shake', desc: '2 scoops whey + whole milk + banana + 2 tbsp PB. ~50P / 65C / 20F' },
-        { name: 'PB Rice Cakes', desc: '4 rice cakes + 2 tbsp PB + honey drizzle. ~10P / 50C / 16F' },
-        { name: 'Cheese and Crackers', desc: '2oz cheddar + whole grain crackers. ~14P / 22C / 14F' },
-        { name: 'Almonds + Protein Bar', desc: '1oz almonds + high-protein bar. ~22P / 28C / 18F' },
-        { name: 'Greek Yogurt + Granola', desc: '1 cup full-fat Greek yogurt + granola + honey. ~18P / 45C / 12F' }
+        { name: 'Mass Gainer Shake', desc: '2 scoops whey + whole milk + banana + 2 tbsp PB. ~50P / 65C / 20F', tags: ['dairy','peanuts'] },
+        { name: 'PB Rice Cakes', desc: '4 rice cakes + 2 tbsp PB + honey drizzle. ~10P / 50C / 16F', tags: ['peanuts'] },
+        { name: 'Cheese and Crackers', desc: '2oz cheddar + whole grain crackers. ~14P / 22C / 14F', tags: ['dairy','gluten'] },
+        { name: 'Almonds + Protein Bar', desc: '1oz almonds + high-protein bar. ~22P / 28C / 18F', tags: ['nuts'] },
+        { name: 'Greek Yogurt + Granola', desc: '1 cup full-fat Greek yogurt + granola + honey. ~18P / 45C / 12F', tags: ['dairy','gluten'] },
+        { name: 'Chicken + Rice Cakes', desc: '3oz cooked chicken + 3 rice cakes + hot sauce. ~28P / 30C / 5F', tags: [] },
+        { name: 'Banana + Sunflower Butter', desc: '1 large banana + 2 tbsp sunflower seed butter. ~8P / 45C / 16F', tags: [] }
       ]
     },
     maintain: {
       breakfast: [
-        { name: 'Veggie Scramble', desc: '3 whole eggs + peppers + onion + spinach + 1 slice toast. ~26P / 28C / 14F' },
-        { name: 'Protein Pancakes', desc: '2 scoops protein powder pancakes + banana + light syrup. ~32P / 45C / 8F' },
-        { name: 'Avocado Toast + Eggs', desc: '2 eggs + 1/2 avocado + 2 slices whole grain bread + everything bagel seasoning. ~22P / 35C / 18F' },
-        { name: 'Greek Yogurt + Fruit Bowl', desc: '1 cup Greek yogurt + mixed fruit + walnuts + honey. ~20P / 40C / 12F' },
-        { name: 'Oatmeal + Eggs', desc: '1 cup oats + 2 scrambled eggs + orange juice. ~28P / 55C / 12F' }
+        { name: 'Veggie Scramble', desc: '3 whole eggs + peppers + onion + spinach + 1 slice toast. ~26P / 28C / 14F', tags: ['eggs','gluten'] },
+        { name: 'Protein Pancakes', desc: '2 scoops protein powder pancakes + banana + light syrup. ~32P / 45C / 8F', tags: ['gluten','dairy'] },
+        { name: 'Avocado Toast + Eggs', desc: '2 eggs + 1/2 avocado + 2 slices whole grain bread. ~22P / 35C / 18F', tags: ['eggs','gluten'] },
+        { name: 'Greek Yogurt + Fruit Bowl', desc: '1 cup Greek yogurt + mixed fruit + walnuts + honey. ~20P / 40C / 12F', tags: ['dairy','nuts'] },
+        { name: 'Oatmeal + Eggs', desc: '1 cup oats + 2 scrambled eggs + orange juice. ~28P / 55C / 12F', tags: ['gluten','eggs'] },
+        { name: 'Chicken and Veggie Hash', desc: 'Diced chicken + sweet potato + bell pepper + onion + olive oil. ~30P / 35C / 10F', tags: [] },
+        { name: 'Fruit and Nut Smoothie', desc: 'Vegan protein + banana + frozen mango + almond milk + flax. ~26P / 48C / 8F', tags: ['nuts'] }
       ],
       lunch: [
-        { name: 'Grilled Chicken Wrap', desc: 'Grilled chicken + whole wheat wrap + lettuce + tomato + hummus. ~38P / 42C / 12F' },
-        { name: 'Salmon Rice Bowl', desc: '5oz salmon + 1 cup rice + edamame + cucumber + sesame dressing. ~42P / 50C / 16F' },
-        { name: 'Turkey Chili', desc: 'Ground turkey + kidney beans + tomatoes + bell peppers + spices. ~36P / 40C / 10F' },
-        { name: 'Chicken Caesar Salad', desc: 'Grilled chicken + romaine + parmesan + croutons + Caesar dressing. ~38P / 22C / 16F' },
-        { name: 'Beef Taco Bowl', desc: 'Lean ground beef + rice + black beans + pico de gallo + light sour cream. ~40P / 52C / 14F' }
+        { name: 'Grilled Chicken Wrap', desc: 'Grilled chicken + whole wheat wrap + lettuce + tomato + hummus. ~38P / 42C / 12F', tags: ['gluten'] },
+        { name: 'Salmon Rice Bowl', desc: '5oz salmon + 1 cup rice + edamame + cucumber + sesame dressing. ~42P / 50C / 16F', tags: ['fish','soy'] },
+        { name: 'Turkey Chili', desc: 'Ground turkey + kidney beans + tomatoes + bell peppers + spices. ~36P / 40C / 10F', tags: [] },
+        { name: 'Chicken Caesar Salad', desc: 'Grilled chicken + romaine + parmesan + croutons + dressing. ~38P / 22C / 16F', tags: ['dairy','gluten','eggs'] },
+        { name: 'Beef Taco Bowl', desc: 'Lean ground beef + rice + black beans + pico + sour cream. ~40P / 52C / 14F', tags: ['beef','dairy'] },
+        { name: 'Chicken + Quinoa Power Bowl', desc: 'Grilled chicken + quinoa + roasted veg + tahini. ~40P / 48C / 14F', tags: [] },
+        { name: 'Turkey + Veggie Stir Fry', desc: 'Ground turkey + broccoli + carrots + snap peas + coconut aminos + rice. ~36P / 45C / 10F', tags: [] }
       ],
       dinner: [
-        { name: 'Baked Salmon + Veggies', desc: '5oz salmon + roasted zucchini + bell peppers + olive oil. ~40P / 12C / 18F' },
-        { name: 'Chicken Stir Fry', desc: '5oz chicken breast + mixed veggies + teriyaki sauce + rice. ~40P / 48C / 10F' },
-        { name: 'Lean Beef Tacos', desc: '4oz lean beef + 2 corn tortillas + guac + pico + lime. ~32P / 38C / 16F' },
-        { name: 'Shrimp Pasta', desc: '4oz shrimp + 1.5 cups whole wheat pasta + garlic olive oil + cherry tomatoes. ~36P / 60C / 14F' },
-        { name: 'Turkey Stuffed Peppers', desc: 'Ground turkey + brown rice + tomato sauce stuffed in bell peppers. ~34P / 40C / 10F' }
+        { name: 'Baked Salmon + Veggies', desc: '5oz salmon + roasted zucchini + bell peppers + olive oil. ~40P / 12C / 18F', tags: ['fish'] },
+        { name: 'Chicken Stir Fry', desc: '5oz chicken breast + mixed veggies + teriyaki sauce + rice. ~40P / 48C / 10F', tags: ['soy','gluten'] },
+        { name: 'Lean Beef Tacos', desc: '4oz lean beef + 2 corn tortillas + guac + pico + lime. ~32P / 38C / 16F', tags: ['beef'] },
+        { name: 'Shrimp Pasta', desc: '4oz shrimp + 1.5 cups whole wheat pasta + garlic olive oil + cherry tomatoes. ~36P / 60C / 14F', tags: ['shellfish','gluten'] },
+        { name: 'Turkey Stuffed Peppers', desc: 'Ground turkey + brown rice + tomato sauce stuffed in bell peppers. ~34P / 40C / 10F', tags: [] },
+        { name: 'Baked Chicken + Roasted Sweet Potato', desc: 'Herb chicken breast + sweet potato wedges + steamed spinach. ~40P / 45C / 8F', tags: [] },
+        { name: 'Ground Turkey Curry', desc: 'Turkey + chickpeas + coconut milk + basmati rice + spices. ~36P / 52C / 14F', tags: [] }
       ],
       snack: [
-        { name: 'Apple + Almond Butter', desc: '1 medium apple + 2 tbsp almond butter. ~6P / 30C / 18F' },
-        { name: 'Protein Shake', desc: '1 scoop whey + water or almond milk. ~25P / 5C / 3F' },
-        { name: 'Trail Mix', desc: '1oz mixed nuts + dried cranberries. ~6P / 20C / 14F' },
-        { name: 'Hard-Boiled Eggs + Fruit', desc: '2 eggs + 1 piece of fruit. ~14P / 20C / 10F' },
-        { name: 'Hummus + Veggies', desc: '3 tbsp hummus + carrots + celery + cucumber. ~6P / 20C / 8F' }
+        { name: 'Apple + Almond Butter', desc: '1 medium apple + 2 tbsp almond butter. ~6P / 30C / 18F', tags: ['nuts'] },
+        { name: 'Protein Shake', desc: '1 scoop whey + water or almond milk. ~25P / 5C / 3F', tags: ['dairy'] },
+        { name: 'Trail Mix', desc: '1oz mixed nuts + dried cranberries. ~6P / 20C / 14F', tags: ['nuts'] },
+        { name: 'Hard-Boiled Eggs + Fruit', desc: '2 eggs + 1 piece of fruit. ~14P / 20C / 10F', tags: ['eggs'] },
+        { name: 'Hummus + Veggies', desc: '3 tbsp hummus + carrots + celery + cucumber. ~6P / 20C / 8F', tags: [] },
+        { name: 'Chicken Jerky + Orange', desc: '1.5oz chicken jerky + 1 orange. ~18P / 20C / 2F', tags: [] },
+        { name: 'Sunflower Seeds + Rice Cake', desc: '1oz sunflower seeds + 2 rice cakes. ~8P / 22C / 12F', tags: [] }
       ]
     }
   };
 
+  function isSafe(meal){
+    if(!meal.tags || _activeAllergens.length === 0) return true;
+    return !meal.tags.some(function(t){ return _activeAllergens.indexOf(t) !== -1; });
+  }
   function pick(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
+    var safe = arr.filter(isSafe);
+    var pool = safe.length > 0 ? safe : arr; // fallback to all if everything blocked
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   var g = MEALS[goal] || MEALS['maintain'];
@@ -4678,6 +4749,7 @@ window.enterApp = function() {
   renderReminder();
   renderBodyWeight();
   renderWorkoutHistory();
+  loadAllergens();
 };
 
 /* ============ INIT ============ */
