@@ -1023,6 +1023,12 @@
 
       <div id="food-guide-panel" style="display:none;margin-bottom:14px"></div>
 
+      <!-- MEAL GENERATOR — always present -->
+      <div style="margin-bottom:14px">
+        <button onclick="generateMealIdeas()" style="width:100%;background:linear-gradient(135deg,#ff4500,#ff7a3d);border:none;border-radius:10px;padding:13px;color:#fff;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">&#9889; GENERATE MEAL IDEAS</button>
+        <div id="meal-ideas-output" style="margin-top:12px"></div>
+      </div>
+
       <div class="section-title">WORKOUT REMINDER</div>
       <div class="reminder-card">
         <div class="reminder-row">
@@ -4094,8 +4100,6 @@ function renderFoodGuide(goal, protein, carbs, fats, cals){
     '<div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#ff4444;margin-bottom:4px">AVOID</div>'+
     '<div style="font-size:12px;color:#c0a0a0;line-height:1.5">'+g.avoid+'</div>'+
     '</div>'+
-    '<button onclick="generateMealIdeas()" style="width:100%;margin-top:14px;background:linear-gradient(135deg,#ff4500,#ff7a3d);border:none;border-radius:10px;padding:13px;color:#fff;font-size:13px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">\u26A1 GENERATE MEAL IDEAS</button>'+
-    '<div id="meal-ideas-output" style="margin-top:12px"></div>'+
     '</div>';
 }
 window.renderFoodGuide = renderFoodGuide;
@@ -4130,21 +4134,10 @@ function loadAllergens(){
 
 /* ============ MEAL IDEA GENERATOR ============ */
 function generateMealIdeas(){
-  // Always read live values — works even if user hasn't re-calculated this session
+  var out = document.getElementById('meal-ideas-output');
+  if(!out) return;
   var saved = loadNutrition();
   var goal = saved.goal || _mealGoal || 'maintain';
-  var protein = parseInt(document.getElementById('macro-protein-input').value,10) || _mealProtein || saved.protein || 150;
-  var carbs = parseInt(document.getElementById('macro-carbs-input').value,10) || _mealCarbs || saved.carbs || 200;
-  var fats = parseInt(document.getElementById('macro-fats-input').value,10) || _mealFats || saved.fats || 60;
-  // Ensure food guide panel is visible
-  var panel = document.getElementById('food-guide-panel');
-  if(!panel) return;
-  if(panel.style.display === 'none' || !document.getElementById('meal-ideas-output')){
-    renderFoodGuide(goal, protein, carbs, fats, protein*4+carbs*4+fats*9);
-    setTimeout(generateMealIdeas, 80);
-    return;
-  }
-  var out = document.getElementById('meal-ideas-output');
 
   var MEALS = {
     lose: {
