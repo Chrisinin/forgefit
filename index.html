@@ -4760,12 +4760,18 @@ window.enterApp = function() {
 })();
 
 /* ============ INIT ============ */
-if(session){
+var session = null;
+
+try {
+  var raw = localStorage.getItem('ff_session');
+  if (raw) {
+    session = JSON.parse(raw);
+  }
+} catch(e) {}
+
+if (session && session.email) {
   enterApp();
 } else {
-  authScreen.style.display = 'flex';
-  appEl.style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
 }
-</script>
-</body>
-</html>
